@@ -13,7 +13,7 @@ What it produces:
     scripts/make_gpu_bundle.py
     configs/final/aapd_baseline.yaml
     configs/final/CONFIG_FREEZE.json
-    notebooks/lhrm_run0_aapd_gpu.ipynb
+    notebooks/lhrm_run0_kaggle_cli.ipynb
     data/processed/AAPD/ (processed data + DATA_MANIFEST.json)
     docs/phase1/run0_preregistration.md
     BUNDLE_MANIFEST.json (hashes, git commit, label_order_hash, freeze_hash)
@@ -105,16 +105,13 @@ def main():
     if os.path.exists(freeze_path):
         to_include.append((freeze_path, "configs/final/CONFIG_FREEZE.json"))
 
-    # Notebooks: prefer CLI-driven notebook; also keep legacy for reference
+    # Notebooks: prefer CLI-driven notebook
     nb_cli = os.path.join(ROOT, "notebooks", "lhrm_run0_kaggle_cli.ipynb")
-    nb_legacy = os.path.join(ROOT, "notebooks", "lhrm_run0_aapd_gpu.ipynb")
     if os.path.exists(nb_cli):
         to_include.append((nb_cli, "notebooks/lhrm_run0_kaggle_cli.ipynb"))
         print("Including CLI notebook:", "notebooks/lhrm_run0_kaggle_cli.ipynb")
-    if os.path.exists(nb_legacy):
-        to_include.append((nb_legacy, "notebooks/lhrm_run0_aapd_gpu.ipynb"))
-    if not os.path.exists(nb_cli) and not os.path.exists(nb_legacy):
-        print("WARNING: no notebook found; not included")
+    else:
+        print("WARNING: no CLI notebook found; not included")
 
     # Label definitions
     defs_path = os.path.join(ROOT, "Label_Definition", "arxiv_labels_definitions.json")
@@ -201,7 +198,7 @@ def main():
     print(f"\nManifest: {manifest_path}")
     print(f"\nNext steps:")
     print(f"  1. Upload {bundle_name} as a private Kaggle Dataset")
-    print(f"  2. Create notebook notebooks/lhrm_run0_aapd_gpu.ipynb")
+    print(f"  2. Create notebook notebooks/lhrm_run0_kaggle_cli.ipynb")
     print(f"  3. Attach the dataset and the bert-base-uncased dataset")
     print(f"  4. Set runtime: GPU (T4 or P100), Internet: OFF (or ON if bert not attached)")
     print(f"  5. Run all cells; download output")
