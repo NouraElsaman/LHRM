@@ -246,6 +246,15 @@ _CROSSCHECK_REFS = {
         "n_distinct_argmax":  (19,       2),
         "prior_p_at_1_hits":  (63,       0),
     },
+    "L2_NO_SA": {
+        "mean_max_alpha":     (0.029699, 0.001),
+        "alpha_one_hot_frac": (0.0,      0.0),
+        "alpha_entropy_mean": (3.964148, 0.01),
+        "S_mean":             (6.036183, 0.5),
+        "S_std":              (0.522010, 0.1),
+        "n_distinct_argmax":  (19,       2),
+        "prior_p_at_1_hits":  (63,       0),
+    },
 }
 
 
@@ -280,8 +289,15 @@ def _run0_step0_crosscheck(s0, variant, out_base):
             print("  WARNING: could not load cross-check reference file: {}".format(exc))
 
     if variant not in refs:
-        print("  Preflight cross-check: variant {} not in reference table (skipped).".format(variant))
-        return True
+        print("  Preflight cross-check: variant {} not in reference table (FAIL PREFLIGHT).".format(variant))
+        report = {
+            "status": "FAIL",
+            "reason": "Variant {} not recognized for step-0 safety cross-check.".format(variant),
+            "variant": variant, "s0": s0,
+        }
+        with open(os.path.join(out_base, "preflight_fail_{}.json".format(variant)), "w") as f:
+            json.dump(report, f, indent=2)
+        return False
 
     if s0.get("diagnostic_error"):
         report = {
@@ -352,6 +368,10 @@ def cmd_run0(args):
     seed = cfg.get("seed", 42)
 
     out_base = os.path.join(ROOT, "experiments", run_id)
+    if os.path.exists(out_base) and os.path.isdir(out_base) and os.listdir(out_base):
+        print(f"ERROR: Experiment directory {out_base} already exists and is non-empty.")
+        print("To protect historical evidence, choose a unique --run_id.")
+        sys.exit(1)
     os.makedirs(out_base, exist_ok=True)
 
     freeze = load_freeze()
@@ -995,6 +1015,11 @@ def cmd_train(args):
                          focal_alpha=float(cfg.get("focal_loss_alpha", 0.25)))
 
     out_dir  = os.path.join(ROOT, "experiments", run_id)
+    if not resume_from:
+        if os.path.exists(out_dir) and os.path.isdir(out_dir) and os.listdir(out_dir):
+            print(f"ERROR: Experiment directory {out_dir} already exists and is non-empty.")
+            print("To protect historical evidence, choose a unique --run_id, or use --resume_from.")
+            sys.exit(1)
     ckpt_dir = os.path.join(out_dir, "checkpoints")
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(ckpt_dir, exist_ok=True)
@@ -1252,6 +1277,11 @@ def cmd_test_eval(args):
     model.eval()
 
     out_dir = os.path.join(ROOT, "experiments", run_id)
+    if not args.resume_from:
+        if os.path.exists(out_dir) and os.path.isdir(out_dir) and os.listdir(out_dir):
+            print(f"ERROR: Experiment directory {out_dir} already exists and is non-empty.")
+            print("To protect historical evidence, choose a unique --run_id, or use --resume_from.")
+            sys.exit(1)
     os.makedirs(out_dir, exist_ok=True)
     pred_path = os.path.join(out_dir, "predictions_test_raw.json")
     if os.path.exists(pred_path):

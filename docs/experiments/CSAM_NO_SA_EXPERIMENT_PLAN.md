@@ -30,15 +30,16 @@ The following components are held strictly constant against `L2`:
 The next Kaggle screening will reuse the `RUN_0` sample (200 dev documents) over 300 steps.
 - **V1 (Numerical Stability)**: No NaN/Inf loss.
 - **V2 (Loss Reduction)**: Mean loss of final 50 steps < first 50.
-- **V3 (Attention Concentration)**: `alpha` one-hot fraction > 0.9.
+- **V3 (Attention Concentration)**: `alpha` one-hot fraction < 0.9.
 - **V4 (Logit Variance)**: At least 28/54 labels have logit standard deviation > 0.01.
 - **V5 (Ranking Superiority)**: Top-1 hits strictly > 63/200 (the frequency prior).
 
 *Additional success signals*: An increase in the number of distinct top-1 predicted labels, or variance in the ordered top-3 ranking patterns across the sample, directly establishing that document dependence has been restored.
 
 ## Output Artifacts & Success Interpretation
-If `L2_NO_SA` passes all criteria (notably V5), it proves that label-label self-attention was the bottleneck causing rank collapse in the LHRM architecture.
-If it fails V5, the model's fundamental premise of mapping label descriptions into the same embedding space as document texts (without further non-linear projection or interaction) is insufficient for distinguishing AAPD documents.
+If `L2_NO_SA` passes all criteria (notably V5), it isolates label-label self-attention as a *contributing factor* to rank collapse, but does NOT strictly prove it was the sole cause, nor does it prove that the LHRM architecture is optimal.
+If it fails V5, it indicates that this specific formulation struggles with document-sensitive ranking, but does NOT prove that text-label alignment is fundamentally incapable of learning.
+Additionally, the BERT+BCE (DR2) run serves as a well-understood control reference for dataset capability, not an absolute theoretical performance ceiling.
 
 ## Next Execution Steps
 1. Create a Kaggle notebook running `cmd_run0` with `--candidates L2_NO_SA` and `--steps 300`.

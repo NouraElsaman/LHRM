@@ -42,7 +42,7 @@ SEED     = 42
 MAX_LEN  = 512
 LABEL_MAX_LEN = 64
 BATCH_SIZE = 4  # small for CPU
-VARIANTS = ["L", "L2"]
+VARIANTS = ["L", "L2", "L2_NO_SA"]
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 from transformers import BertTokenizer

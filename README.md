@@ -47,7 +47,7 @@ python run_baseline.py prepare --config configs/final/aapd_baseline.yaml
 
 Architecture Viability Screening (RUN_0 - Requires GPU):
 ```bash
-python run_baseline.py run0 --config configs/final/aapd_baseline.yaml --run_id RUN_0 --steps 300 --candidates L2,L2_NO_SA
+python run_baseline.py run0 --config configs/final/aapd_baseline.yaml --run_id RUN_0_L2_NO_SA_20261010 --steps 300 --candidates L2,L2_NO_SA
 ```
 
 Full Baseline Training (Requires GPU):
