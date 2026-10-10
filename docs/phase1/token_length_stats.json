@@ -1,0 +1,63 @@
+{
+  "train": {
+    "split": "train",
+    "n": 53840,
+    "mean": 187.33567979197622,
+    "p50": 180,
+    "p75": 237,
+    "p90": 294,
+    "p95": 328,
+    "p99": 385,
+    "p100": 655,
+    "pct_over_128": 0.7595282317979197,
+    "pct_over_256": 0.18642273402674592,
+    "pct_over_512": 0.0002786032689450223,
+    "pct_truncated_at_128": 0.7595282317979197,
+    "pct_truncated_at_256": 0.18642273402674592
+  },
+  "dev": {
+    "split": "dev",
+    "n": 1000,
+    "mean": 185.842,
+    "p50": 176,
+    "p75": 236,
+    "p90": 291,
+    "p95": 326,
+    "p99": 385,
+    "p100": 541,
+    "pct_over_128": 0.762,
+    "pct_over_256": 0.177,
+    "pct_over_512": 0.001,
+    "pct_truncated_at_128": 0.762,
+    "pct_truncated_at_256": 0.177
+  },
+  "test": {
+    "split": "test",
+    "n": 1000,
+    "mean": 187.629,
+    "p50": 181,
+    "p75": 234,
+    "p90": 294,
+    "p95": 326,
+    "p99": 381,
+    "p100": 465,
+    "pct_over_128": 0.761,
+    "pct_over_256": 0.186,
+    "pct_over_512": 0.0,
+    "pct_truncated_at_128": 0.761,
+    "pct_truncated_at_256": 0.186
+  },
+  "A10_decision": {
+    "selected_max_len": 512,
+    "use_dynamic_padding": true,
+    "rule": "smallest in {128,256,512} covering >=99% of TRAIN token lengths",
+    "evidence": {
+      "train_p99": 385,
+      "train_pct_over_128": 0.7595282317979197,
+      "train_pct_over_256": 0.18642273402674592,
+      "train_pct_over_512": 0.0002786032689450223
+    },
+    "rationale": "p99 train = 385 tokens > 256, so 256 covers only ~81.4% of train. 512 covers 100.0%. Dynamic padding used: pad each batch to its longest sequence (attention mask handles rest). Mathematically identical to fixed padding for BERT attention. Truncation rate at 512: 0.0% train, 0.1% dev, 0.0% test.",
+    "note": "OLD max_len=256 (word-level A10) was WITHDRAWN. Token-level rule applied."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "total_results": 300,
+  "matched": 29,
+  "match_rate": 0.09666666666666666,
+  "exact_agreement": 0,
+  "exact_agreement_rate": 0.0,
+  "mean_iou": 0.01839080459770115,
+  "iou_gt_0.5_count": 0,
+  "iou_gt_0.5_rate": 0.0,
+  "verdict": "UNRESOLVED_LABEL_MAPPING"
+}

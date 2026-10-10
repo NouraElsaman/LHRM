@@ -1,0 +1,3511 @@
+[
+  {
+    "split": "test",
+    "idx": 0,
+    "our_labels": [
+      "cs.cc",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 1,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 2,
+    "our_labels": [
+      "cs.ai",
+      "cs.ce"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 3,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 4,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 5,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 6,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 7,
+    "our_labels": [
+      "cs.dl",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 8,
+    "our_labels": [
+      "cs.cv",
+      "cs.ma"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 9,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.cg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 10,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 11,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 12,
+    "our_labels": [
+      "cs.ce",
+      "cs.ni"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 13,
+    "our_labels": [
+      "cs.ds",
+      "math.na"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/cmp-lg/9607011v1",
+    "arxiv_cats": [
+      "cs.CL"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 14,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cond-mat.stat-mech",
+      "cs.ai"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 15,
+    "our_labels": [
+      "cs.ai",
+      "cs.cv",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 16,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr",
+      "cs.ma",
+      "cs.sc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 17,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 18,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 19,
+    "our_labels": [
+      "cs.db",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 20,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 21,
+    "our_labels": [
+      "cs.cy",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 22,
+    "our_labels": [
+      "cs.sc",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 23,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.cy",
+      "cs.lg"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1106.2428v2",
+    "arxiv_cats": [
+      "math.CO",
+      "cs.IT",
+      "quant-ph"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 24,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr",
+      "math.oc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 25,
+    "our_labels": [
+      "cs.ce",
+      "cs.ni"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 26,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/cs/0502083v1",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 27,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 28,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 29,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 30,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 31,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ce"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 32,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.ds",
+      "cs.it"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1205.2657v1",
+    "arxiv_cats": [
+      "cs.CL",
+      "cs.IR",
+      "cs.LG",
+      "stat.ML"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 33,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy",
+      "cs.lo",
+      "cs.na",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 34,
+    "our_labels": [
+      "cs.ce",
+      "cs.dl",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 35,
+    "our_labels": [
+      "cs.hc",
+      "cs.ne"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1607.06063v1",
+    "arxiv_cats": [
+      "cs.DB",
+      "cs.DC"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 36,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 37,
+    "our_labels": [
+      "cs.fl",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 38,
+    "our_labels": [
+      "cs.ai",
+      "math.st"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 39,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.sc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 40,
+    "our_labels": [
+      "cs.ma",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 41,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 42,
+    "our_labels": [
+      "cs.ce",
+      "cs.cr",
+      "q-bio.qm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 43,
+    "our_labels": [
+      "cs.ce",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 44,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.dc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 45,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 46,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 47,
+    "our_labels": [
+      "cs.dm",
+      "cs.ds"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 48,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 49,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 50,
+    "our_labels": [
+      "cs.fl",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 51,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 52,
+    "our_labels": [
+      "cs.fl",
+      "cs.ne"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 53,
+    "our_labels": [
+      "cs.ds",
+      "cs.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 54,
+    "our_labels": [
+      "cs.cg",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 55,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dm",
+      "cs.ir"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 56,
+    "our_labels": [
+      "cs.cv",
+      "cs.ms",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 57,
+    "our_labels": [
+      "cs.ms",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 58,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1603.04564v1",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 59,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 60,
+    "our_labels": [
+      "cs.ai",
+      "cs.ds",
+      "cs.ne"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 61,
+    "our_labels": [
+      "cs.cv",
+      "cs.lo",
+      "math.st"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1112.1186v1",
+    "arxiv_cats": [
+      "cs.GT",
+      "cs.LO",
+      "math.LO"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 62,
+    "our_labels": [
+      "cs.ce",
+      "cs.db",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 63,
+    "our_labels": [
+      "cs.ir",
+      "quant-ph"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 64,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/cs/0510095v3",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 65,
+    "our_labels": [
+      "cs.gt",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 66,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 67,
+    "our_labels": [
+      "cs.ce",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 68,
+    "our_labels": [
+      "cs.pf",
+      "cs.sc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 69,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1207.4139v1",
+    "arxiv_cats": [
+      "cs.LG",
+      "stat.ML"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 70,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 71,
+    "our_labels": [
+      "cs.ma",
+      "cs.pl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 72,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 73,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "math.oc",
+      "q-bio.qm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 74,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 75,
+    "our_labels": [
+      "cs.cv",
+      "cs.cy",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 76,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ds"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 77,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ai",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 78,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 79,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 80,
+    "our_labels": [
+      "cs.dl",
+      "math.pr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 81,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 82,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 83,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 84,
+    "our_labels": [
+      "cs.ai",
+      "cs.ce"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 85,
+    "our_labels": [
+      "cs.cv",
+      "cs.cy",
+      "math.st"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 86,
+    "our_labels": [
+      "cs.ce",
+      "stat.ml"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 87,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1204.2692v1",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 88,
+    "our_labels": [
+      "cs.fl",
+      "cs.ms"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 89,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1101.2405v1",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 90,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 91,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 92,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 93,
+    "our_labels": [
+      "cs.ai",
+      "cs.cv"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 94,
+    "our_labels": [
+      "cs.cg",
+      "cs.ma"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 95,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 96,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 97,
+    "our_labels": [
+      "cs.ai",
+      "cs.ds"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1511.09460v1",
+    "arxiv_cats": [
+      "cs.AI",
+      "cs.CL"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 98,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 99,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 100,
+    "our_labels": [
+      "cs.ai",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 101,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 102,
+    "our_labels": [
+      "cs.fl",
+      "cs.pl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 103,
+    "our_labels": [
+      "cs.cg",
+      "cs.ds"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1204.2804v1",
+    "arxiv_cats": [
+      "cs.SI",
+      "cs.CL",
+      "cs.CY"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 104,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 105,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1509.02861v1",
+    "arxiv_cats": [
+      "math.OC",
+      "eess.SY"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 106,
+    "our_labels": [
+      "cs.ai",
+      "cs.cc",
+      "cs.dm",
+      "stat.me"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 107,
+    "our_labels": [
+      "cs.cr",
+      "math.lo"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1511.08367v1",
+    "arxiv_cats": [
+      "physics.soc-ph",
+      "cs.DL"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 108,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 109,
+    "our_labels": [
+      "cs.ds",
+      "math.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 110,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 111,
+    "our_labels": [
+      "cs.it",
+      "math.nt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 112,
+    "our_labels": [
+      "cs.ce",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 113,
+    "our_labels": [
+      "cs.ma",
+      "cs.mm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 114,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 115,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 116,
+    "our_labels": [
+      "cs.cl",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 117,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 118,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 119,
+    "our_labels": [
+      "cs.ai",
+      "cs.mm",
+      "q-bio.nc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 120,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 121,
+    "our_labels": [
+      "cs.ce",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 122,
+    "our_labels": [
+      "cs.fl",
+      "math.nt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 123,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 124,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.db",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 125,
+    "our_labels": [
+      "cs.cl",
+      "cs.db",
+      "cs.ni"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 126,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 127,
+    "our_labels": [
+      "cs.dm",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 128,
+    "our_labels": [
+      "cs.cv",
+      "cs.mm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 129,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dc",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 130,
+    "our_labels": [
+      "cs.pl",
+      "math.nt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 131,
+    "our_labels": [
+      "cs.cv",
+      "cs.gt",
+      "q-bio.nc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 132,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 133,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 134,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 135,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 136,
+    "our_labels": [
+      "cs.hc",
+      "cs.mm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 137,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 138,
+    "our_labels": [
+      "cs.dl",
+      "cs.hc"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1309.6610v3",
+    "arxiv_cats": [
+      "cs.DC",
+      "cs.NI"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 139,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 140,
+    "our_labels": [
+      "cs.gt",
+      "math.oc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 141,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl",
+      "cs.fl"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1211.7075v1",
+    "arxiv_cats": [
+      "cs.NI",
+      "cs.CR",
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 142,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 143,
+    "our_labels": [
+      "cs.cg",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 144,
+    "our_labels": [
+      "cs.cr",
+      "cs.dl",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 145,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 146,
+    "our_labels": [
+      "cs.sc",
+      "math.pr",
+      "physics.data-an"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 147,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 148,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 149,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1406.6647v2",
+    "arxiv_cats": [
+      "cs.CR",
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 150,
+    "our_labels": [
+      "cs.db",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 151,
+    "our_labels": [
+      "cs.fl",
+      "cs.ma"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/0801.4268v1",
+    "arxiv_cats": [
+      "cs.CY",
+      "cs.CR"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 152,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 153,
+    "our_labels": [
+      "cs.ce",
+      "cs.ni",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 154,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 155,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 156,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 157,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 158,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 159,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 160,
+    "our_labels": [
+      "cs.dm",
+      "cs.ma"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 161,
+    "our_labels": [
+      "cs.ce",
+      "cs.ni"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 162,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 163,
+    "our_labels": [
+      "cs.it",
+      "math.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 164,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ce"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1307.4339v4",
+    "arxiv_cats": [
+      "cs.DS",
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 165,
+    "our_labels": [
+      "cs.fl",
+      "cs.ir"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 166,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.cc",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 167,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 168,
+    "our_labels": [
+      "cs.pf",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 169,
+    "our_labels": [
+      "cs.cv",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 170,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.cc",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 171,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.cy",
+      "cs.dc",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 172,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 173,
+    "our_labels": [
+      "cs.dl",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 174,
+    "our_labels": [
+      "cs.cl",
+      "cs.hc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 175,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.pf"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 176,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 177,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 178,
+    "our_labels": [
+      "cs.cr",
+      "math.lo"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1607.04884v6",
+    "arxiv_cats": [
+      "physics.soc-ph",
+      "cs.DL"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 179,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 180,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.cc",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 181,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 182,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 183,
+    "our_labels": [
+      "cs.cv",
+      "cs.lo",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 184,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 185,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 186,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 187,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 188,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 189,
+    "our_labels": [
+      "cs.cl",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 190,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1207.6174v1",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "test",
+    "idx": 191,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "nlin.ao"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 192,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc",
+      "cs.dc",
+      "cs.pf",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 193,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "math.co",
+      "math.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 194,
+    "our_labels": [
+      "cs.cy",
+      "cs.db",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 195,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 196,
+    "our_labels": [
+      "cs.fl",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 197,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 198,
+    "our_labels": [
+      "cs.cc",
+      "cs.cg",
+      "cs.ma",
+      "nlin.ao"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "test",
+    "idx": 199,
+    "our_labels": [
+      "cs.ce",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 0,
+    "our_labels": [
+      "cs.it",
+      "physics.soc-ph"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 1,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 2,
+    "our_labels": [
+      "cs.dm",
+      "nlin.ao"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 3,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "nlin.ao"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 4,
+    "our_labels": [
+      "cs.ai",
+      "cs.ds"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 5,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 6,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 7,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 8,
+    "our_labels": [
+      "cs.ro",
+      "physics.data-an"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 9,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl",
+      "cs.lg"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 10,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 11,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ms"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 12,
+    "our_labels": [
+      "cs.dl",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 13,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 14,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 15,
+    "our_labels": [
+      "cs.ce",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 16,
+    "our_labels": [
+      "cs.ai",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 17,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 18,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 19,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 20,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 21,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 22,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 23,
+    "our_labels": [
+      "cs.ce",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 24,
+    "our_labels": [
+      "cs.gt",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 25,
+    "our_labels": [
+      "cs.dl",
+      "math.pr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 26,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1502.05264v1",
+    "arxiv_cats": [
+      "cs.SI",
+      "physics.soc-ph"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 27,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 28,
+    "our_labels": [
+      "cs.ai",
+      "cs.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 29,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 30,
+    "our_labels": [
+      "cs.hc",
+      "cs.ne"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 31,
+    "our_labels": [
+      "cs.db",
+      "cs.sy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 32,
+    "our_labels": [
+      "cs.ce",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 33,
+    "our_labels": [
+      "cs.ce",
+      "cs.cy"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 34,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 35,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 36,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "nlin.ao"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 37,
+    "our_labels": [
+      "cs.cr",
+      "cs.ds"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 38,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 39,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 40,
+    "our_labels": [
+      "cs.ce",
+      "cs.hc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 41,
+    "our_labels": [
+      "cs.cr",
+      "cs.it"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 42,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.dm",
+      "cs.ir"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 43,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ds"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 44,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 45,
+    "our_labels": [
+      "cs.ce",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 46,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr",
+      "math.oc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 47,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 48,
+    "our_labels": [
+      "cs.ai",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 49,
+    "our_labels": [
+      "cs.ce",
+      "cs.dc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 50,
+    "our_labels": [
+      "cs.cv",
+      "cs.ms"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 51,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 52,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 53,
+    "our_labels": [
+      "cs.ms",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 54,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 55,
+    "our_labels": [
+      "cs.fl",
+      "cs.ma"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 56,
+    "our_labels": [
+      "cs.hc",
+      "cs.ne"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 57,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr",
+      "math.oc",
+      "q-bio.qm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 58,
+    "our_labels": [
+      "cs.ce",
+      "cs.dc",
+      "cs.pf"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 59,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 60,
+    "our_labels": [
+      "cs.ce",
+      "cs.cg",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 61,
+    "our_labels": [
+      "cs.sc",
+      "physics.data-an"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 62,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 63,
+    "our_labels": [
+      "cs.cr",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 64,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 65,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 66,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.cy"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1012.0898v1",
+    "arxiv_cats": [
+      "math.CO",
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 67,
+    "our_labels": [
+      "cs.dl",
+      "cs.se"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 68,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 69,
+    "our_labels": [
+      "cs.ai",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 70,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 71,
+    "our_labels": [
+      "cs.hc",
+      "cs.ro"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 72,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 73,
+    "our_labels": [
+      "cs.ai",
+      "cs.cv"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 74,
+    "our_labels": [
+      "cs.cy",
+      "q-bio.nc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 75,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 76,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1305.3483v6",
+    "arxiv_cats": [
+      "cs.IT"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 77,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1401.6123v1",
+    "arxiv_cats": [
+      "cs.IT",
+      "cs.CR"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 78,
+    "our_labels": [
+      "cs.cg",
+      "cs.cr",
+      "cs.lo"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 79,
+    "our_labels": [
+      "cs.cc",
+      "cs.cg",
+      "cs.cr"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 80,
+    "our_labels": [
+      "cs.ai",
+      "math.oc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 81,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 82,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cv"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 83,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 84,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 85,
+    "our_labels": [
+      "cs.cv",
+      "cs.db"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 86,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.ma",
+      "cs.pl",
+      "cs.si"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 87,
+    "our_labels": [
+      "cs.it",
+      "stat.ml"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1602.02911v1",
+    "arxiv_cats": [
+      "cs.IR",
+      "q-bio.QM"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 88,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.cc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 89,
+    "our_labels": [
+      "cs.it",
+      "cs.ma",
+      "math.lo"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1101.2985v1",
+    "arxiv_cats": [
+      "cs.DL",
+      "cs.CY",
+      "cs.IR"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 90,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 91,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 92,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.fl"
+    ],
+    "arxiv_id": "http://arxiv.org/abs/1303.2545v1",
+    "arxiv_cats": [
+      "cs.IT",
+      "cs.CR"
+    ],
+    "matched": true
+  },
+  {
+    "split": "train",
+    "idx": 93,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.dl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 94,
+    "our_labels": [
+      "cs.cl",
+      "cs.cy",
+      "q-bio.nc"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 95,
+    "our_labels": [
+      "cond-mat.stat-mech",
+      "cs.ai",
+      "cs.dm"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 96,
+    "our_labels": [
+      "cs.dc",
+      "cs.gt"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 97,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn",
+      "cs.na"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 98,
+    "our_labels": [
+      "cmp-lg",
+      "cond-mat.dis-nn"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  },
+  {
+    "split": "train",
+    "idx": 99,
+    "our_labels": [
+      "cs.ce",
+      "cs.cl"
+    ],
+    "arxiv_id": null,
+    "arxiv_cats": [],
+    "matched": false
+  }
+]

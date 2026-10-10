@@ -1,0 +1,27 @@
+dataset: reuters
+data_dir: data/processed/Reuters
+defs_path: Label_Definition/reuters_labels_definitions.json
+bert_model: bert-base-uncased
+# A10-Reuters: max_len=512 chosen (BERT hard limit).
+# Reuters p50=128, p90=387, p95=555, p99=899, max=1633.
+# At 512: 94.12% of docs fit; 5.88% truncated (NECESSARY ENGINEERING ASSUMPTION).
+# The rule "first of {128,256,512} covering >=99%" yields 512 (none cover 99%).
+# Truncation is unavoidable; registered as A10-Reuters deviation.
+max_len: 512
+batch_size: 8
+num_epochs: 10
+learning_rate: 2.0e-05
+weight_decay: 0.01
+focal_loss_gamma: 2.0
+focal_loss_alpha: 0.25
+seed: 42
+amp: true
+# CF6/architecture: set after RUN 0 screening (FREEZE-A -> RUN 0 -> FREEZE-B)
+architecture: TBD
+hrrm_enabled: true
+_notes:
+  A_R1b: 'Reuters dedup+resplit (A_R1b): train=6910, val=767, test=3019 (all disjoint)'
+  A10_Reuters: 'max_len=512; 5.88% truncated (p99=899 > BERT hard limit of 512)'
+  A15: 'num_epochs=10 is PAPER-EXPLICIT for Reuters'
+  A18: 'Tie-breaking: seeded-random (N6 fix)'
+  A19: 'Evaluate on final epoch; best.pt is DIAGNOSTIC ONLY'

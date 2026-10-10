@@ -1,0 +1,218 @@
+{
+  "cmp-lg": {
+    "full_name": "Computer Science \u2013 Logic in Computer Science",
+    "definition": "Research on the logical foundations of computer science, including formal methods, model checking, type systems, and theorem proving."
+  },
+  "cond-mat.dis-nn": {
+    "full_name": "Condensed Matter \u2013 Disordered Systems and Neural Networks",
+    "definition": "Studies on disordered physical systems and the application of neural networks to condensed matter physics."
+  },
+  "cond-mat.stat-mech": {
+    "full_name": "Condensed Matter \u2013 Statistical Mechanics",
+    "definition": "Theoretical and computational work on statistical properties of physical systems in condensed matter."
+  },
+  "cs.AI": {
+    "full_name": "Computer Science \u2013 Artificial Intelligence",
+    "definition": "Research on intelligent systems, including machine learning, planning, knowledge representation, and robotics."
+  },
+  "cs.CC": {
+    "full_name": "Computer Science \u2013 Computational Complexity",
+    "definition": "Studies on the inherent difficulty of computational problems and the resources needed to solve them."
+  },
+  "cs.CE": {
+    "full_name": "Computer Science \u2013 Computational Engineering, Finance, and Science",
+    "definition": "Application of computational methods to engineering problems, financial modeling, and scientific simulations."
+  },
+  "cs.CG": {
+    "full_name": "Computer Science \u2013 Computational Geometry",
+    "definition": "Research on algorithms and data structures for geometric objects and spatial data."
+  },
+  "cs.CL": {
+    "full_name": "Computer Science \u2013 Computation and Language",
+    "definition": "Natural language processing, computational linguistics, and language modeling research."
+  },
+  "cs.CR": {
+    "full_name": "Computer Science \u2013 Cryptography and Security",
+    "definition": "Work on cryptographic protocols, data privacy, cybersecurity, and secure computation."
+  },
+  "cs.CV": {
+    "full_name": "Computer Science \u2013 Computer Vision and Pattern Recognition",
+    "definition": "Research on image understanding, object detection, pattern recognition, and visual scene analysis."
+  },
+  "cs.CY": {
+    "full_name": "Computer Science \u2013 Computers and Society",
+    "definition": "Studies on the impact of computing technology on society, ethics, and public policy."
+  },
+  "cs.DB": {
+    "full_name": "Computer Science \u2013 Databases",
+    "definition": "Research on database design, query optimization, data modeling, and information retrieval."
+  },
+  "cs.DC": {
+    "full_name": "Computer Science \u2013 Distributed, Parallel, and Cluster Computing",
+    "definition": "Work on distributed systems, parallel computing, and large-scale computing infrastructures."
+  },
+  "cs.DL": {
+    "full_name": "Computer Science \u2013 Digital Libraries",
+    "definition": "Research on digital archiving, metadata, document retrieval, and library information systems."
+  },
+  "cs.DM": {
+    "full_name": "Computer Science \u2013 Discrete Mathematics",
+    "definition": "Application of discrete mathematical structures in algorithms, combinatorics, and graph theory."
+  },
+  "cs.DS": {
+    "full_name": "Computer Science \u2013 Data Structures and Algorithms",
+    "definition": "Fundamental studies on algorithm design, analysis, and efficient data organization techniques."
+  },
+  "cs.FL": {
+    "full_name": "Computer Science \u2013 Formal Languages and Automata Theory",
+    "definition": "Research on grammars, parsing, automata, and language recognition models."
+  },
+  "cs.GT": {
+    "full_name": "Computer Science \u2013 Computer Science and Game Theory",
+    "definition": "Analysis of strategic interactions using computational and economic principles."
+  },
+  "cs.HC": {
+    "full_name": "Computer Science \u2013 Human-Computer Interaction",
+    "definition": "Design and evaluation of user interfaces, usability, and interactive technologies."
+  },
+  "cs.IR": {
+    "full_name": "Computer Science \u2013 Information Retrieval",
+    "definition": "Research on search engines, document ranking, and retrieval models for large datasets."
+  },
+  "cs.IT": {
+    "full_name": "Computer Science \u2013 Information Theory",
+    "definition": "Study of data compression, error correction, coding theory, and entropy."
+  },
+  "cs.LG": {
+    "full_name": "Computer Science \u2013 Machine Learning",
+    "definition": "Research on algorithms and models that improve performance through experience."
+  },
+  "cs.LO": {
+    "full_name": "Computer Science \u2013 Logic in Computer Science",
+    "definition": "Same as cmp-lg, focusing on formal logic, proof theory, and reasoning systems in computing."
+  },
+  "cs.MA": {
+    "full_name": "Computer Science \u2013 Multiagent Systems",
+    "definition": "Study of systems with multiple autonomous agents interacting in shared environments."
+  },
+  "cs.MM": {
+    "full_name": "Computer Science \u2013 Multimedia",
+    "definition": "Research on multimedia systems including audio, video, graphics, and content delivery."
+  },
+  "cs.MS": {
+    "full_name": "Computer Science \u2013 Mathematical Software",
+    "definition": "Design and implementation of software for mathematical modeling and symbolic computation."
+  },
+  "cs.NA": {
+    "full_name": "Computer Science \u2013 Numerical Analysis",
+    "definition": "Work on numerical methods for solving mathematical problems on computers."
+  },
+  "cs.NE": {
+    "full_name": "Computer Science \u2013 Neural and Evolutionary Computing",
+    "definition": "Research on neural networks, genetic algorithms, and biologically inspired computation."
+  },
+  "cs.NI": {
+    "full_name": "Computer Science \u2013 Networking and Internet Architecture",
+    "definition": "Design and analysis of computer networks, protocols, and internet infrastructure."
+  },
+  "cs.PF": {
+    "full_name": "Computer Science \u2013 Performance",
+    "definition": "Evaluation and optimization of computer system performance, including benchmarking and profiling."
+  },
+  "cs.PL": {
+    "full_name": "Computer Science \u2013 Programming Languages",
+    "definition": "Study of language design, compilers, interpreters, and programming paradigms."
+  },
+  "cs.RO": {
+    "full_name": "Computer Science \u2013 Robotics",
+    "definition": "Development of autonomous robots, motion planning, and robotic perception."
+  },
+  "cs.SC": {
+    "full_name": "Computer Science \u2013 Symbolic Computation",
+    "definition": "Use of symbolic mathematics in computing, including algebraic manipulation and theorem proving."
+  },
+  "cs.SE": {
+    "full_name": "Computer Science \u2013 Software Engineering",
+    "definition": "Techniques and tools for designing, developing, testing, and maintaining software systems."
+  },
+  "cs.SI": {
+    "full_name": "Computer Science \u2013 Social and Information Networks",
+    "definition": "Analysis of social media, online communities, and network dynamics."
+  },
+  "cs.SY": {
+    "full_name": "Computer Science \u2013 Systems and Control",
+    "definition": "Work on control systems, feedback loops, and system stability in computing applications."
+  },
+  "math.CO": {
+    "full_name": "Mathematics \u2013 Combinatorics",
+    "definition": "Study of counting, arrangement, and combination structures in mathematics."
+  },
+  "math.IT": {
+    "full_name": "Mathematics \u2013 Information Theory",
+    "definition": "Mathematical foundations of information processing, coding, and transmission."
+  },
+  "math.LO": {
+    "full_name": "Mathematics \u2013 Logic",
+    "definition": "Research in formal logic, model theory, proof systems, and logical foundations of mathematics."
+  },
+  "math.NA": {
+    "full_name": "Mathematics \u2013 Numerical Analysis",
+    "definition": "Study of numerical methods and algorithms for solving mathematical problems."
+  },
+  "math.NT": {
+    "full_name": "Mathematics \u2013 Number Theory",
+    "definition": "Theoretical research in properties and relationships of integers and prime numbers."
+  },
+  "math.OC": {
+    "full_name": "Mathematics \u2013 Optimization and Control",
+    "definition": "Techniques for optimizing objective functions and controlling dynamic systems."
+  },
+  "math.PR": {
+    "full_name": "Mathematics \u2013 Probability",
+    "definition": "Study of random processes, distributions, and probabilistic models."
+  },
+  "math.ST": {
+    "full_name": "Mathematics \u2013 Statistics",
+    "definition": "Mathematical analysis of data, inference, hypothesis testing, and modeling uncertainty."
+  },
+  "nlin.AO": {
+    "full_name": "Nonlinear Sciences \u2013 Adaptation and Self-Organizing Systems",
+    "definition": "Studies of dynamic systems that evolve through adaptation and self-organization."
+  },
+  "physics.data-an": {
+    "full_name": "Physics \u2013 Data Analysis, Statistics and Probability",
+    "definition": "Application of statistical methods to experimental data analysis in physics."
+  },
+  "physics.soc-ph": {
+    "full_name": "Physics \u2013 Physics and Society",
+    "definition": "Interdisciplinary studies on the impact of physics on social systems and human behavior."
+  },
+  "q-bio.NC": {
+    "full_name": "Quantitative Biology \u2013 Neurons and Cognition",
+    "definition": "Quantitative studies of brain function, neural dynamics, and cognitive processes."
+  },
+  "q-bio.QM": {
+    "full_name": "Quantitative Biology \u2013 Quantitative Methods",
+    "definition": "Development of quantitative methods for studying biological phenomena and systems."
+  },
+  "quant-ph": {
+    "full_name": "Quantum Physics",
+    "definition": "Theoretical and experimental research on quantum systems, entanglement, and quantum computing."
+  },
+  "stat.AP": {
+    "full_name": "Statistics \u2013 Applications",
+    "definition": "Application of statistical techniques to real-world problems across disciplines."
+  },
+  "stat.ME": {
+    "full_name": "Statistics \u2013 Methodology",
+    "definition": "Development and evaluation of statistical methods and frameworks."
+  },
+  "stat.ML": {
+    "full_name": "Statistics \u2013 Machine Learning",
+    "definition": "Intersection of statistics and machine learning, focusing on predictive modeling and inference."
+  },
+  "stat.TH": {
+    "full_name": "Statistics \u2013 Theory",
+    "definition": "Mathematical theory underlying statistical inference, estimation, and hypothesis testing."
+  }
+}

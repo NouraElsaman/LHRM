@@ -1,0 +1,58 @@
+# LHRM Baseline — AAPD experiment (paper-faithful)
+# All values are PAPER-DEFINED unless marked ASSUMED or REPO
+# DO NOT change without updating decision_registry.md
+
+experiment_id: lhrm_baseline_aapd_L_focal_seed42_v1
+
+# Dataset
+dataset: aapd                          # PAPER
+data_dir: data/processed/AAPD         # REPO
+zip_path: Data/AAPD.zip               # REPO
+defs_path: Label_Definition/arxiv_labels_definitions.json  # REPO
+
+# BERT
+bert_name: bert-base-uncased           # ASSUMED (A14)
+max_len: 256                           # ASSUMED (A10; P90 word-length > 128)
+hidden_size: 768                       # PAPER
+
+# CSAM variant — selected by 1-epoch pilot (pending A6)
+variant: L                             # ASSUMED (A6; most literal; update after pilot)
+separate_label_encoder: false          # ASSUMED (A2)
+
+# Training
+epochs: 15                             # PAPER
+batch_size: 8                          # PAPER
+lr: 2.0e-5                             # PAPER
+weight_decay: 0.01                     # PAPER
+seed: 42                               # REPO
+use_amp: true                          # ASSUMED (A11; speed; recorded)
+num_workers: 0                         # REPO (Windows)
+
+# Loss
+loss: focal                            # PAPER (Eq.17)
+focal_gamma: 2.0                       # ASSUMED (A9; paper doesn't report)
+focal_alpha: 0.25                      # ASSUMED (A9; paper doesn't report)
+
+# HRRM
+gb_n_estimators: 100                   # PAPER
+gb_learning_rate: 0.1                  # PAPER
+gb_max_depth: 3                        # PAPER
+gb_subsample: 1.0                      # PAPER
+gb_criterion: friedman_mse             # PAPER
+gb_loss: squared_error                 # PAPER
+gb_validation_fraction: 0.1            # PAPER (INERT: n_iter_no_change=None)
+gb_tol: 1.0e-4                         # PAPER (INERT: n_iter_no_change=None)
+# n_iter_no_change: null               # ASSUMED (A13; no early stopping)
+
+# Evaluation
+eval_k_values: [1, 3, 5]
+bootstrap_n: 1000
+
+# Paths
+out_dir: experiments/lhrm_baseline_aapd_L_focal_seed42_v1
+checkpoint_dir: experiments/lhrm_baseline_aapd_L_focal_seed42_v1/checkpoints
+
+# Label mapping status (D3 risk)
+# UNVERIFIED_LABEL_MAPPING: cmp-lg/cond-mat.dis-nn are duplicate columns
+# Update to VERIFIED when correct AAPD label order is obtained
+label_mapping_status: UNVERIFIED_LABEL_MAPPING

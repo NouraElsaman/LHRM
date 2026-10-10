@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.env
+
+# Datasets and Checkpoints
+Data/
+data/processed/
+*.pt
+*.joblib
+*.pth
+*.bin
+
+# Experiments and Bundles
+experiments/
+bundles/
+dist/
+*.zip
+!bundles/BUNDLE_MANIFEST_*.json
+
+# Logs and Scratch
+*.log
+scratch/

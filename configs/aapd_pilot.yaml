@@ -1,0 +1,41 @@
+# LHRM — 1-epoch pilot for variant selection (A6)
+# Run with variant=L, L2, R sequentially
+# Check: loss decreasing + no NaN + alpha_one_hot_frac < 0.9 + P@1 > prior
+
+experiment_id: lhrm_pilot_variant_selection
+
+dataset: aapd
+data_dir: data/processed/AAPD
+zip_path: Data/AAPD.zip
+defs_path: Label_Definition/arxiv_labels_definitions.json
+bert_name: bert-base-uncased
+max_len: 256
+hidden_size: 768
+variant: L                             # Run once per variant; L -> L2 -> R
+separate_label_encoder: false
+epochs: 1                              # PILOT ONLY
+batch_size: 8
+lr: 2.0e-5
+weight_decay: 0.01
+seed: 42
+use_amp: true
+num_workers: 0
+
+loss: focal
+focal_gamma: 2.0
+focal_alpha: 0.25
+
+gb_n_estimators: 100
+gb_learning_rate: 0.1
+gb_max_depth: 3
+gb_subsample: 1.0
+gb_criterion: friedman_mse
+gb_loss: squared_error
+gb_validation_fraction: 0.1
+gb_tol: 1.0e-4
+
+eval_k_values: [1, 3, 5]
+bootstrap_n: 100
+out_dir: experiments/pilot
+checkpoint_dir: experiments/pilot/checkpoints
+label_mapping_status: UNVERIFIED_LABEL_MAPPING

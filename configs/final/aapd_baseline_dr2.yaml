@@ -1,0 +1,68 @@
+# LHRM Baseline -- AAPD DR2 Control Baseline (Variant B)
+# DR2 APPROVAL: Standard BERT Multi-Label Classification
+
+experiment_id: lhrm_baseline_aapd_B_bce_seed42_v1
+run0_id: lhrm_run0_aapd_B_bce_seed42_v1
+
+# Dataset (ZENODO SOURCE AS PROVIDED -- A_D1)
+dataset: aapd
+data_dir: data/processed/AAPD
+zip_path: Data/AAPD.zip
+defs_path: Label_Definition/arxiv_labels_definitions.json
+label_mapping_status: UNRESOLVED_LABEL_MAPPING_ACCEPTED_BY_CLIENT_DECISION
+
+# BERT (A14: REPOSITORY-DEFINED; paper says "BERT" without variant)
+bert_model: bert-base-uncased
+max_len: 512      # A10: BERT hard limit; NEA; head truncation only
+hidden_size: 768  # PAPER: "configured with two attention layers, each having a hidden size of 768"
+
+# Architecture (DR2 Control Baseline)
+architecture: B
+
+# Training (PAPER-EXPLICIT for baseline parity)
+num_epochs: 15        # PAPER: "training proceeded for 15 epochs" (AAPD)
+batch_size: 8         # PAPER: Section IV-D
+learning_rate: 2.0e-5 # PAPER: Section IV-D
+weight_decay: 0.01    # PAPER: Section IV-D
+seed: 42              # REPO
+
+# AMP (A11: ASSUMED; not in paper)
+amp: true
+
+# Loss: bce (DR2 Standard MLTC)
+loss: bce
+
+# HRRM (A13: PAPER-EXPLICIT; Section IV-D verbatim)
+gb_n_estimators: 100
+gb_learning_rate: 0.1
+gb_max_depth: 3
+gb_subsample: 1.0
+gb_criterion: friedman_mse   # deprecated sklearn >= 1.1; no effect; retained for paper fidelity
+gb_loss: squared_error
+gb_n_iter_no_change: 10
+gb_tol: 0.0001
+gb_validation_fraction: 0.1
+hrrm_fitting_data: dev_predictions  # A17: fitted on dev split predictions only (non-leaky)
+
+# Evaluation (A19: final-epoch model; best.pt is DIAGNOSTIC ONLY)
+eval_model: final_epoch
+eval_k_values: [1, 3, 5]
+bootstrap_n: 1000
+bootstrap_seed: 42
+
+# No scheduler, warm-up or gradient clipping (PAPER-ABSENT; NEA)
+scheduler: null
+warmup_steps: 0
+max_grad_norm: null
+
+# Tie-breaking (A16/A18: seeded-random; adjusted -> raw -> seeded permutation)
+tie_breaking: seeded_random
+
+# Paths
+out_dir: experiments/lhrm_baseline_aapd_B_bce_seed42_v1
+checkpoint_dir: experiments/lhrm_baseline_aapd_B_bce_seed42_v1/checkpoints
+
+# Annotation
+registry_version: v4
+registry_path: docs/phase1/decision_registry_v4.md
+phase: DR2
