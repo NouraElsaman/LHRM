@@ -1,0 +1,10 @@
+{
+  "repo_id": "google-bert/bert-base-uncased",
+  "source_revision": "86b5e0934494bd15c9632b12f734a8a67f723594",
+  "saved_weights_file": "model.safetensors",
+  "saved_weights_sha256": "5cc36ad3fafb0708f95cabab4966235f4662235815e77487b5e9c7d9692977d8",
+  "bert_config_sha256": "c0754b5054e8a29ac00863338863f1b2568986fc31eea38ae499190eaa561f59",
+  "vocab_sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+  "vocab_size": 30522,
+  "hidden_size": 768
+}

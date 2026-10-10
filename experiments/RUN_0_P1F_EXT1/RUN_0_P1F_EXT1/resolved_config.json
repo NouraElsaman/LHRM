@@ -1,0 +1,27 @@
+{
+  "config_file": "configs/final/aapd_dr1_runtime.yaml",
+  "run_id": "RUN_0_P1F_EXT1",
+  "dataset": "aapd",
+  "data_dir": "/kaggle/working/data/processed/AAPD",
+  "defs_path": "/kaggle/working/Label_Definition/arxiv_labels_definitions.json",
+  "label_order_sha256": "a3d662f3920259a94ed61d83f98f21cabe7f908d98a5662ccd9adc2413cc000b",
+  "n_labels": 54,
+  "val_sample_ids_sha256": "25912e362b0180f0b47a694ecf1d29c35f4140c87375a8053a62fee6850df0a8",
+  "n_val_docs": 200,
+  "prior_p_at_1_hits": 63,
+  "bert_model": "/kaggle/working/google_bert_bert_base_uncased_official",
+  "max_len": 512,
+  "batch_size": 8,
+  "n_steps": 1000,
+  "seed": 42,
+  "amp": true,
+  "candidates": [
+    "L2"
+  ],
+  "git": {
+    "commit": "UNKNOWN",
+    "dirty": true,
+    "error": "Command '['git', 'rev-parse', 'HEAD']' returned non-zero exit status 128."
+  },
+  "crosscheck_ref_file": "/kaggle/working/docs/phase1/run0_local_step0_crosscheck.json"
+}

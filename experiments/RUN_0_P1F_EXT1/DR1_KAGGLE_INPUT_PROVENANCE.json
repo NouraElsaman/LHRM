@@ -1,0 +1,30 @@
+{
+  "run_id": "RUN_0_P1F_EXT1",
+  "purpose": "DIAGNOSTIC_ONLY",
+  "steps": 1000,
+  "candidates": [
+    "L2"
+  ],
+  "original_bundle_sha256": "eebf2d9537c9949c3395b80eb707527f82ea08678ba2605bdf6c9fae0cf9a7ef",
+  "bundle_source": "/kaggle/input/datasets/nouraelsaman/lhrm-bundle",
+  "frozen_config_sha256": "a11b733e8d7810dfe19ebb9758514a9c7964b52b9baf702a19a380dc657c2e33",
+  "runtime_config_sha256": "ef69f45b009efb85c13b1bd210bfa2864b05b70bdbfd263fe38ad56f99d14a5f",
+  "runtime_config_change": "bert_model local absolute path ONLY",
+  "bert_local_path": "/kaggle/working/google_bert_bert_base_uncased_official",
+  "bert_hf_repo": "google-bert/bert-base-uncased",
+  "bert_hf_commit": "86b5e0934494bd15c9632b12f734a8a67f723594",
+  "bert_saved_weights_sha256": "5cc36ad3fafb0708f95cabab4966235f4662235815e77487b5e9c7d9692977d8",
+  "aapd_source": "/kaggle/input/datasets/nouraelsaman/aapd-dataset/AAPD",
+  "aapd_source_kind": "directory",
+  "zenodo_original_zip_sha256_if_accessible": null,
+  "raw_train_dev_sha256": {
+    "train": "e7e73064385f78fe092edd47d4e4059c35875a1ea2a95859ad3cde091ed9af95",
+    "dev": "a85f612d4c1cb2be6d1de94cbcd9468cba97d221f826014264f4d279c82e220b"
+  },
+  "staged_train_dev_zip_sha256": "2d006a435af31464ecc754ece4d796d0f3e157b8bffe41e2cf04f7387a97709a",
+  "label_order_sha256": "a3d662f3920259a94ed61d83f98f21cabe7f908d98a5662ccd9adc2413cc000b",
+  "val_ids_file_sha256": "25912e362b0180f0b47a694ecf1d29c35f4140c87375a8053a62fee6850df0a8",
+  "test_split_loaded": false,
+  "gpu_name": "Tesla T4",
+  "source_cli_legacy_diag_filename": "variant_L2/step300_diagnostics.json (contains step=1000)"
+}

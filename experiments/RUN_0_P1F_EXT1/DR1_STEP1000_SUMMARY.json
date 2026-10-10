@@ -1,0 +1,22 @@
+{
+  "run_id": "RUN_0_P1F_EXT1",
+  "run_type": "DIAGNOSTIC_ONLY",
+  "diagnostics_actual_step": 1000,
+  "legacy_source_filename": "variant_L2/step300_diagnostics.json",
+  "source_filename_note": "Legacy basename unchanged in CLI; JSON step field is 1000",
+  "v4_labels_passing_std_threshold": 49,
+  "v4_required_labels": 28,
+  "v5_model_hits": 63,
+  "v5_prior_hits": 63,
+  "criteria": {
+    "V1": true,
+    "V2": true,
+    "V3": true,
+    "V4": true,
+    "V5": false
+  },
+  "viable_all_criteria": false,
+  "script_decision_status": "EXTEND",
+  "script_chosen_variant": null,
+  "note": "NO automatic FREEZE-B; human evidence review and explicit gate are required."
+}

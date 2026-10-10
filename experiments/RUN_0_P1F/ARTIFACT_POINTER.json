@@ -1,0 +1,41 @@
+{
+  "_type": "ARTIFACT_POINTER",
+  "run_id": "RUN_0_P1F",
+  "status": "NONE_VIABLE",
+  "run_date": "2026-10-09",
+  "full_zip": {
+    "path": "D:\\LHRM_KAGGLE_ARTIFACTS\\RUN_0_P1F_20261009\\run0_artifacts_RUN_0_P1F_20261009_165339.zip",
+    "sha256": "74930ca14074fe1123f13fdd10d4f5043a23a775571e06ab20dc4508306802c4",
+    "size_bytes": 4376784088,
+    "note": "Stored outside Git project. Do not copy into project without explicit approval."
+  },
+  "evidence_zip": {
+    "path": "D:\\LHRM_KAGGLE_ARTIFACTS\\RUN_0_P1F_20261009\\RUN0_EVIDENCE.zip",
+    "note": "Lightweight evidence: diagnostics JSONs, logs, predictions, code snapshot (no checkpoints)"
+  },
+  "provenance": {
+    "label_order_sha256": "a3d662f3920259a94ed61d83f98f21cabe7f908d98a5662ccd9adc2413cc000b",
+    "val_ids_match_local_registered": true,
+    "prior_p_at_1_hits": 63,
+    "dataset": "AAPD (Zenodo record 6344750)",
+    "bert_model": "google-bert/bert-base-uncased (official)",
+    "gpu": "Tesla T4",
+    "seed": 42,
+    "n_steps": 300
+  },
+  "decision": {
+    "status": "NONE_VIABLE",
+    "chosen_variant": null,
+    "L_V1": true,
+    "L_V2": true,
+    "L_V3": false,
+    "L_V4": false,
+    "L_V5": false,
+    "L2_V1": true,
+    "L2_V2": true,
+    "L2_V3": true,
+    "L2_V4": false,
+    "L2_V5": false
+  },
+  "written": "2026-10-09T18:51:55Z"
+}

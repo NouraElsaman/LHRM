@@ -16,7 +16,10 @@ data/processed/
 *.bin
 
 # Experiments and Bundles
-experiments/
+experiments/*
+!experiments/RUN_0/
+!experiments/RUN_0_P1F/
+!experiments/RUN_0_P1F_EXT1/
 bundles/
 dist/
 *.zip
