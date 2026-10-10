@@ -28,3 +28,7 @@ dist/
 # Logs and Scratch
 *.log
 scratch/
+
+.ipynb_checkpoints/
+
+!experiments/RUN_0_P1F_EXT1/RUN_0_P1F_EXT1_EVIDENCE_20261009_222831.zip
