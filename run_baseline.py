@@ -503,6 +503,7 @@ def cmd_run0(args):
         "Wrong dataset, IDs or seed?".format(prior_hits_on_val))
 
     results = {}
+    l2_initial_state_dict = None
 
     for variant in candidates:
         print("\n" + "-" * 50)
@@ -520,6 +521,36 @@ def cmd_run0(args):
 
         bert = build_bert_model(bert_name, device)
         model = LHRMModel(bert, len(label_order), variant=variant).to(device)
+
+        if variant == "L2":
+            l2_initial_state_dict = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        elif variant == "L2_A5B":
+            from lhrm_baseline.model import init_a5b_from_l2
+            ref_bert = build_bert_model(bert_name, device)
+            ref_l2 = LHRMModel(ref_bert, len(label_order), variant="L2").to(device)
+            if l2_initial_state_dict is not None:
+                ref_l2.load_state_dict({k: v.to(device) for k, v in l2_initial_state_dict.items()})
+            init_a5b_from_l2(ref_l2, model)
+            print("  [L2_A5B Training Parity] Initialized unshared classifier W and bias from L2 baseline reference.")
+
+            # Verify real training-path parity on an identical fixed batch BEFORE optimizer steps
+            ref_l2.eval()
+            model.eval()
+            with torch.no_grad():
+                first_batch = next(iter(val_loader))
+                b_ids = first_batch["input_ids"].to(device)
+                b_mask = first_batch["attention_mask"].to(device)
+                ref_logits, _ = forward_pass(ref_l2, b_ids, b_mask, label_ids, label_mask)
+                a5b_logits, _ = forward_pass(model, b_ids, b_mask, label_ids, label_mask)
+                max_diff = (ref_logits - a5b_logits).abs().max().item()
+            print("  [L2_A5B Training Parity] Pre-step logit max diff: {:.8e}".format(max_diff))
+            assert max_diff < 1e-5, (
+                "FATAL: Real training-path initialization parity failed for L2_A5B! Max diff: {}".format(max_diff)
+            )
+            del ref_l2, ref_bert
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
         optimizer = torch.optim.AdamW(model.parameters(),
                                       lr=cfg.get("learning_rate", 2e-5),
                                       weight_decay=cfg.get("weight_decay", 0.01))
