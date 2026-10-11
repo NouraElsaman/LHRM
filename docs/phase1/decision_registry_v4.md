@@ -388,3 +388,20 @@ Finding: Refuted hypothesis that label-label self-attention was the sole cause o
 Finding: Data collinearity identified (identical ground truth columns for `cmp-lg` and `cond-mat.dis-nn`).
 Action: Executed controlled standalone diagnostic micro-probe (`scripts/probe_csam_gradient_paths.py`, documented in `docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`). Recommended next empirical step is retrieving step-300 checkpoint tensors (`variant_L2/checkpoints/step_300.pt` and `variant_L2_NO_SA/checkpoints/step_300.pt`) to evaluate trained activation states directly.
 Detailed postmortem: `docs/experiments/L2_NO_SA_POSTMORTEM.md`.
+
+---
+
+## DR3b -- Controlled Checkpoint Replay & Trained Gradient Diagnostic
+
+Class: SCIENTIFIC RESEARCH AUDIT & EMPIRICAL DIAGNOSTIC
+Date: 2026-10-11
+Status: COMPLETED (INTEGRATED)
+Decision: Executed ONE controlled replay (`RUN_0_L2_NO_SA_REPLAY_20261011_B`, 300 steps per candidate) to recover trained step-300 model states, exported lightweight model-only checkpoints (~417.7 MB each), and conducted an authentic post-training gradient diagnostic (`scripts/probe_csam_trained_checkpoint.py`) on real AAPD Train representations.
+Rationale: Resolves the missing checkpoint gap from DR3, allowing empirical measurement of internal representations and loss dynamics after 300 optimization steps.
+Outcome:
+- Replicated exact ranking collapse of the original ablation (both candidates failed V4 and V5, achieving 63/200 hits).
+- Measured logit decomposition on real representations: In `L2`, the static label self-attention term ($1.651$) dominates the document term ($0.034$) by $48.42\times$. In `L2_NO_SA`, cross-attention remains diffuse (entropy 3.945 / 3.989, 98.9% uniform), with cross-document document term variance of only $0.00207$.
+- Disproved loss function (Focal vs. BCE) as the cause of gradient attenuation; BCE scales gradients by $\sim 3\times$ but preserves identical parameter gradient ratios ($\sim 10^{-4}$).
+- Identifies the combination of diffuse cross-attention and the shared scalar classifier ($W \in \mathbb{R}^{1 \times H}$, Decision A5) as the primary mechanism locking label rankings across documents.
+Recommended Next Action: Preregistered controlled screening of `A5b` (Unshared Classifier Head $W \in \mathbb{R}^{k \times H}$, Figure 2 Fallback Reading).
+Detailed Report: `docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`.

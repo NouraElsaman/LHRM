@@ -75,6 +75,15 @@ Executed 300 optimizer steps per candidate on Kaggle (`RUN_0_L2_NO_SA_ABLATION_2
 - Empirically refutes the hypothesis that label-label self-attention was the sole cause of ranking collapse.
 - Detailed postmortem documented in [`docs/experiments/L2_NO_SA_POSTMORTEM.md`](docs/experiments/L2_NO_SA_POSTMORTEM.md) and controlled gradient micro-probe in [`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](docs/experiments/DR3_GRADIENT_MICRO_PROBE.md).
 
+### Completed DR3 Replay & Authentic Trained Gradient Diagnostic (`RUN_0_L2_NO_SA_REPLAY_20261011_B`)
+Executed controlled 300-step replay on Kaggle GPU, recovered complete step-300 trained checkpoints (`L2_STEP300_MODEL_ONLY.pt`, `L2_NO_SA_STEP300_MODEL_ONLY.pt`), and evaluated an authentic post-training gradient diagnostic on real representations.
+- **Outcome**: Replicated exact failure mode (both variants NOT VIABLE, tying static frequency prior of 63/200 hits).
+- **Trained Diagnostic Measurements**:
+  - In `L2`, static label self-attention ($1.651$) dominates the document term ($0.034$) by $48.42\times$.
+  - In `L2_NO_SA`, cross-attention remains diffuse (entropy 3.945 / 3.989, 98.9% uniform), with cross-document document term variance of only $0.00207$ (vs. $0.05447$ across labels).
+  - Paired with the shared scalar classifier ($W \in \mathbb{R}^{1 \times H}$), this locks label rankings into identical order across all documents.
+  - Comprehensive empirical analysis documented in [`docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`](docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md).
+
 ---
 
 ## Latest Experimental Evidence — RUN_0 / DR1
