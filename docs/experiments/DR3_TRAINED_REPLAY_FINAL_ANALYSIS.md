@@ -52,8 +52,8 @@ We independently verified the training execution records in `DR3_REPLAY_EVIDENCE
 | **Step 300 $\alpha$ Entropy** | 3.6728 | **3.6635** | 3.9454 | **3.9452** | Max uniform = 3.9890 |
 
 ### 2.2 Key Replay Confirmation Findings:
-1. **Perfect Replicability of Failure Mode:** The replay reproduced the exact viability failure profile across both variants (V1–V3 PASS, V4–V5 FAIL).
-2. **Collinear Duplicate Prior Selection:** In the replay, `L2` assigned 200/200 documents to `cmp-lg` (score: 0.3341 vs 0.3331 for `cond-mat.dis-nn`). In the original ablation, `L2` assigned 199/200 to `cond-mat.dis-nn` and 1/200 to `cmp-lg`. Because `cmp-lg` and `cond-mat.dis-nn` have **bitwise identical target columns** across AAPD Train and Dev, both labels represent the exact same static dataset frequency prior of 63/200 hits. The tiny margin difference ($\Delta = 0.0010$) reflects standard non-deterministic GPU kernel accumulation while converging to the exact same degenerate subspace.
+1. **Replication of Failure Mode:** The replay reproduced the exact viability failure profile across both variants (V1–V3 PASS, V4–V5 FAIL) and the exact P@1 hit count (63/200, 31.50%).
+2. **Replication Profile and Collinear Prior Selection:** The replay reproduced the V1–V5 pass/fail profile and P@1 hit counts, not bitwise-identical predictions. In the replay, `L2` assigned 200/200 documents to `cmp-lg` (score: 0.3341 vs 0.3331 for `cond-mat.dis-nn`), whereas in the original ablation, `L2` assigned 199/200 to `cond-mat.dis-nn` and 1/200 to `cmp-lg`. Because `cmp-lg` and `cond-mat.dis-nn` have **bitwise identical target columns** across AAPD Train and Dev, both labels represent the exact same static dataset frequency prior of 63/200 hits. However, because full optimization trajectories were not recorded at every optimizer step, observed prediction differences between these collinear labels must not be attributed solely to GPU nondeterminism without direct trajectory evidence.
 3. **Total Collapse in `L2_NO_SA`:** `L2_NO_SA` assigned 200/200 documents to `cond-mat.dis-nn` in both runs, with 0/54 labels passing V4 logit variation and an attention entropy of 3.9452 (98.9% of maximum uniform entropy).
 
 ---
@@ -86,22 +86,22 @@ Using the recovered step-300 checkpoints, the authentic diagnostic micro-probe (
 
 ---
 
-## 4. Synthetic Initialization vs. Trained-State Comparison
+## 4. Synthetic Baseline Probe vs. Trained-State Comparison
 
-Comparing the synthetic initialization micro-probe against the real trained-state diagnostic resolves the open question regarding how representations evolved over the 300 optimization steps:
+Comparing the earlier synthetic random-representation probe against the real trained-state diagnostic provides an illustrative baseline, but the synthetic probe was **not** the real step-0 initialization state of the later trained models. Differences between these measurements must not be described as directly observed training-time evolution. Rather, they highlight the structural contrast between an untrained synthetic state and post-training representations:
 
-| Feature / Metric | Initialization (Synthetic Probe) | Trained Step 300 (`L2`) | Trained Step 300 (`L2_NO_SA`) | Observed Evolution |
+| Feature / Metric | Synthetic Probe Baseline | Trained Step 300 (`L2`) | Trained Step 300 (`L2_NO_SA`) | Observed Contrast (Not Longitudinal Evolution) |
 | :--- | :---: | :---: | :---: | :--- |
 | **`L2` Document Term Magnitude** | $0.01265$ | $0.03410$ | $0.24108$ | Grew slightly in L2; grew in NO_SA |
-| **`L2` Static SA Term Magnitude** | $0.6745$ | $1.6512$ | *0.0 (Excised)* | **Expanded by $2.45\times$** during training |
-| **SA Term / Document Term Ratio** | $53.32\times$ | **$48.42\times$** | *N/A* | Remained overwhelmingly dominant (~50x) |
-| **Doc Term Variation across Docs ($\sigma_{\text{docs}}$)** | $0.01348$ | **$0.00589$** | **$0.00207$** | **Contracted by $2.3\times$ to $6.5\times$** |
-| **Attention Entropy Ratio** | 88.46% | 94.10% | **98.91%** | **Diffused toward pure uniform distribution** |
-| **$\|\nabla_{h_T}\|$ (Focal Loss)** | $2.30 \times 10^{-4}$ | $1.43 \times 10^{-5}$ | $1.07 \times 10^{-5}$ | **Attenuated by $> 16\times$** |
+| **`L2` Static SA Term Magnitude** | $0.6745$ | $1.6512$ | *0.0 (Excised)* | Substantially larger in trained state |
+| **SA Term / Document Term Ratio** | $53.32\times$ | **$48.42\times$** | *N/A* | Overwhelmingly dominant (~50x in both) |
+| **Doc Term Variation across Docs ($\sigma_{\text{docs}}$)** | $0.01348$ | **$0.00589$** | **$0.00207$** | Lower in trained state |
+| **Attention Entropy Ratio** | 88.46% | 94.10% | **98.91%** | Closer to uniform in trained state |
+| **$\|\nabla_{h_T}\|$ (Focal Loss)** | $2.30 \times 10^{-4}$ | $1.43 \times 10^{-5}$ | $1.07 \times 10^{-5}$ | Substantially smaller in trained state |
 
-### 4.1 Key Empirical Takeaways:
-1. **Self-Attention Reinforcement in `L2`:** Training did *not* weaken the static label-label term; AdamW optimization magnified it from 0.67 to 1.65, while the document term remained suppressed at 0.034.
-2. **The "Uniform Attention Trap" in `L2_NO_SA`:** When the SA term was excised, the model failed to develop sharp, document-discriminative cross-attention. Attention entropy reached 3.9454 (98.9% of maximum possible entropy $\ln 54 = 3.9890$). Because cross-attention was virtually uniform ($\alpha \approx 0.021$ for all labels), the document term $\alpha_{b, i} (W h_{L_i})$ varied by only **0.002 across documents**, compared to 0.054 across labels.
+### 4.1 Structural Contrast Takeaways:
+1. **Self-Attention Dominance in `L2`:** In trained `L2`, the static label-label term (1.6512) is $48.42\times$ larger than the document-dependent term (0.03410). The static term remains overwhelmingly dominant in the post-training state.
+2. **The "Uniform Attention Trap" in `L2_NO_SA`:** When the SA term was excised, the trained model exhibited diffuse cross-attention (attention entropy reached 3.9454, or 98.9% of maximum possible entropy $\ln 54 = 3.9890$). Because cross-attention was virtually uniform ($\alpha \approx 0.021$ for all labels), the document term $\alpha_{b, i} (W h_{L_i})$ varied by only **0.002 across documents**, compared to 0.054 across labels.
 3. **The Shared Classifier Consequence ($W \in \mathbb{R}^{1 \times H}$):** With static label embeddings $h_L$ and nearly flat attention $\alpha_{b, i} \approx \bar{\alpha}$, the logit simplifies to:
    $$\text{logit}_{b, i} \approx \bar{\alpha} (W h_{L_i}) + b$$
    Because $W$ is a single shared vector across all 54 labels, $(W h_{L_i})$ is a fixed scalar constant for label $i$. The relative ranking of labels is therefore permanently frozen across all documents, producing identical Top-1 predictions (200/200 assigned to the frequency prior).
@@ -117,7 +117,10 @@ To maintain rigorous scientific standards, we delineate our findings across thre
 - In trained `L2`, the static label self-attention logit component is $48.42\times$ larger than the document contribution.
 - In trained `L2_NO_SA`, the cross-document standard deviation of the document logit term is only $0.00207$, while the cross-label standard deviation is $0.05447$.
 - In trained `L2_NO_SA`, attention entropy is 98.91% of maximum uniform entropy.
-- Under identical logits and targets, standard BCE yields $3\times$ to $4\times$ higher gradient magnitudes than Focal Loss, but relative gradient ratios between parameters are almost identical ($\sim 10^{-4}$).
+- Under identical trained representations and targets:
+  - In `L2`, standard BCE produced a significantly larger classifier weight gradient ($\|\nabla_W\| = 1.9220$ vs $0.03791$), reducing the document-to-classifier gradient ratio $\|\nabla_{h_T}\| / \|\nabla_W\|$ from $3.769 \times 10^{-4}$ (Focal) to $2.695 \times 10^{-5}$ (BCE).
+  - In `L2_NO_SA`, the ratios were nearly identical ($2.232 \times 10^{-4}$ under Focal vs $2.306 \times 10^{-4}$ under BCE).
+  - Therefore, the trained L2 gradient ratios are not identical across losses. Furthermore, BCE's performance as an actual training objective remains untested in the otherwise identical CSAM architecture.
 
 ### Tier 2: Mathematical Deductions (Analytical Invariants)
 - **Logit Decomposition:** For any document $b$ and label $i$, CSAM logits decompose exactly as $\text{logit}_{b, i} = \alpha_{b, i} (W h_{L_i}) + W (A h_L)_i + b$. In `L2_NO_SA`, the second term is identically zero.
@@ -136,8 +139,8 @@ To maintain rigorous scientific standards, we delineate our findings across thre
 We evaluate the three major investigated avenues:
 
 1. **Loss-Function Effects (Focal Loss vs. BCE):**
-   - **Evaluation: DEPRIORITIZED / NOT THE ROOT CAUSE.**
-   - Both synthetic and trained micro-probes confirm that BCE scales gradient norms uniformly without altering the relative gradient distribution between document embeddings and classifier parameters. Furthermore, the attention entropy trap is established in forward activation space and is not a mere artifact of Focal Loss gradient scaling.
+   - **Evaluation: DEPRIORITIZED AS ISOLATED REMEDY / UNTESTED AS TRAINING OBJECTIVE.**
+   - The diagnostic micro-probe measured different gradient ratios between Focal Loss and BCE in trained L2 (with BCE producing a much larger classifier weight gradient and an even lower document-to-classifier ratio of $2.695 \times 10^{-5}$). While both losses suffer from severe document gradient attenuation relative to classifier weights, BCE's performance as an actual training objective remains untested in the otherwise identical CSAM architecture.
 
 2. **Cross-Attention Projection Layer (Query/Key Projections):**
    - **Evaluation: PLAUSIBLE BUT SECONDARY / UNFAITHFUL TO PAPER.**
@@ -145,26 +148,27 @@ We evaluate the three major investigated avenues:
 
 3. **Classifier Head Parameterization (`A5` Shared $W \in \mathbb{R}^{1 \times H}$ vs. `A5b` Unshared $W \in \mathbb{R}^{k \times H}$):**
    - **Evaluation: HIGHEST SCIENTIFIC JUSTIFICATION & PREREGISTERED FALLBACK.**
-   - In `decision_registry_v4.md`, `A5b` was specifically preregistered as the authorized fallback interpretation of Figure 2 if both `L` and `L2` failed viability criteria V1–V5.
-   - If $W \in \mathbb{R}^{k \times H}$ (one projection vector per label), the logit is $\text{logit}_{b, i} = w_i \cdot (\alpha_{b, i} h_{L_i}) + b_i$. This directly decouples each label's decision boundary from a single global projection vector, allowing document-specific discriminative weights to emerge.
+   - In `decision_registry_v4.md`, `A5b` was preregistered as an alternative architectural interpretation of Figure 2 if both `L` and `L2` failed viability criteria V1–V5.
+   - If $W \in \mathbb{R}^{k \times H}$ (one projection vector per label), the logit is $\text{logit}_{b, i} = w_i \cdot h_{\text{final}, b, i} + b$. This directly decouples each label's decision boundary from a single global projection vector, allowing document-specific discriminative weights to emerge.
 
 ---
 
 ## 7. Recommended Next Research Action (Exactly ONE)
 
-### Action Name: DR4 Preregistered Screening of Variant `L2_A5B` (Unshared Classifier Head)
+### Action Name: DR4 Preregistered Screening of Variant `L2_A5B` (Unshared Per-Label Classifier)
 
-**Decision Code:** `A5b` (Figure 2 Fallback Reading)  
-**Target Candidate:** `L2_A5B` (Scales Eq. 4 by $\frac{1}{\sqrt{H}}$, excises static SA or evaluates unshared $W \in \mathbb{R}^{54 \times 768}$).
+**Decision Code:** `A5b` (Figure 2 Alternative Interpretation)  
+**Scientific Status:** Alternative architectural interpretation, not a confirmed paper-faithful implementation.  
+**Target Candidate:** `L2_A5B` (Scales Eq. 4 by $\frac{1}{\sqrt{H}}$, retains label-label self-attention Eq. 6, and parameterizes classifier as unshared $W \in \mathbb{R}^{54 \times 768}$ with shared scalar bias $b \in \mathbb{R}$).
 
 ### 7.1 Precise Hypothesis
-> If the CSAM ranking collapse is primarily enforced by the shared scalar classifier constraint ($W \in \mathbb{R}^{1 \times H}$ projecting diffuse attention into identical label scores), then replacing the shared classifier with an unshared linear head ($W \in \mathbb{R}^{k \times H}$, where each label possesses its own projection vector $w_i \in \mathbb{R}^H$) will permit document-dependent score differentiation, resulting in passing V4 ($\ge 28/54$ labels with logit std $> 0.01$) and breaking the 200/200 single-label collapse on the validation sample.
+> If the CSAM ranking collapse is primarily enforced by the shared scalar classifier constraint ($W \in \mathbb{R}^{1 \times H}$ projecting diffuse attention into identical label scores), then replacing the shared classifier with an unshared per-label weight matrix ($W \in \mathbb{R}^{k \times H}$, where each label possesses its own projection vector $w_i \in \mathbb{R}^H$) while preserving label-label self-attention will permit document-dependent score differentiation, resulting in passing V4 ($\ge 28/54$ labels with logit std $> 0.01$) and breaking the 200/200 single-label collapse on the validation sample.
 
 ### 7.2 Minimal Confounding Implementation
 - **Backbone & Pretrained Source:** Pinned `google-bert/bert-base-uncased` (`86b5e0934494bd15c9632b12f734a8a67f723594`).
 - **Dataset & Seed:** Seed 42, AAPD Train (53,840), Dev (1,000), frozen 200 validation sample IDs.
-- **Protocol:** Exactly 300 optimizer steps, AdamW, $\text{lr}=3\times 10^{-5}$, Focal Loss ($\alpha=0.25, \gamma=2.0$).
-- **Single Architectural Change:** Only replace `nn.Linear(H, 1)` with `nn.Linear(H, k)` (or per-label linear heads). Zero other modifications.
+- **Protocol:** Exactly 300 optimizer steps, AdamW, $\text{lr}=2\times 10^{-5}$ (approved AAPD baseline learning rate, NOT $3\times 10^{-5}$), weight decay 0.01, Focal Loss ($\alpha=0.25, \gamma=2.0$).
+- **Exact Architectural Modification:** Replace shared classifier `nn.Linear(H, 1)` with unshared per-label parameter $W \in \mathbb{R}^{k \times H}$ and shared scalar bias $b \in \mathbb{R}$, computing `logits = (h_final * W.unsqueeze(0)).sum(dim=-1) + b`. Label-label self-attention remains fully ENABLED. Zero other modifications.
 
 ### 7.3 Predefined Success / Failure Criteria
 - **SUCCESS (PASS):**
@@ -173,7 +177,7 @@ We evaluate the three major investigated avenues:
   3. V5 PASS: P@1 integer hits strictly exceed 63 ($> 31.50\%$).
 - **FAILURE (FAIL):**
   1. V4 FAIL ($< 28/54$ labels passing std threshold) or V5 FAIL ($\le 63$ hits).
-  2. If `L2_A5B` also collapses to the static frequency prior, the hypothesis of shared-classifier limitation is falsified, proving that the cross-attention dot product itself ($h_T \cdot h_L$) is unable to convey document discriminability.
+  2. If `L2_A5B` fails, this demonstrates that unsharing the classifier head alone is insufficient to resolve ranking collapse under this 300-step screening protocol. It does **not** prove that document-label dot-product attention is the sole remaining failure source, as other unablated factors (e.g. attention temperature scaling, representation capacity, optimization timescale) could also contribute.
 
 ---
 

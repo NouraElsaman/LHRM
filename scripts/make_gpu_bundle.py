@@ -130,6 +130,8 @@ def main():
         "docs/phase1/decision_registry_v4.md",
         "docs/phase1/aapd_data_decision.md",
         "docs/experiments/CSAM_NO_SA_EXPERIMENT_PLAN.md",
+        "docs/experiments/DR4_A5B_PREREGISTRATION.md",
+        "docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md",
     ]
     for doc in docs:
         fp = os.path.join(ROOT, doc)

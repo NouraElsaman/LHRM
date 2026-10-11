@@ -22,6 +22,7 @@ This repository builds upon the original client implementation by adding signifi
 The source tree supports several architecture options:
 - **Variant L**: The literal, paper-faithful CSAM implementation explicitly mapping Eqs. 4-8.
 - **Variant L2**: A controlled stabilization of `L` incorporating $\frac{1}{\sqrt{H}}$ scaling to the document-label similarity computation.
+- **Variant L2_A5B**: An alternative architectural interpretation parameterizing an unshared classifier weight $W \in \mathbb{R}^{k \times H}$ with shared scalar bias $b \in \mathbb{R}$, retaining label-label self-attention.
 - **Variant B**: A standard independent BERT control (`[CLS] -> Linear(54)`) utilizing BCEWithLogitsLoss.
 - **Variant L2_NO_SA**: A prepared isolated mathematical ablation removing label-label self-attention.
 - **Variant R**: A repository-style fallback CSAM using concat aggregation.
@@ -77,12 +78,19 @@ Executed 300 optimizer steps per candidate on Kaggle (`RUN_0_L2_NO_SA_ABLATION_2
 
 ### Completed DR3 Replay & Authentic Trained Gradient Diagnostic (`RUN_0_L2_NO_SA_REPLAY_20261011_B`)
 Executed controlled 300-step replay on Kaggle GPU, recovered complete step-300 trained checkpoints (`L2_STEP300_MODEL_ONLY.pt`, `L2_NO_SA_STEP300_MODEL_ONLY.pt`), and evaluated an authentic post-training gradient diagnostic on real representations.
-- **Outcome**: Replicated exact failure mode (both variants NOT VIABLE, tying static frequency prior of 63/200 hits).
+- **Outcome**: Replicated V1–V5 pass/fail profile and P@1 hit count (63/200), not bitwise-identical predictions. Prediction differences between collinear labels are not attributed solely to GPU nondeterminism without direct trajectory evidence.
 - **Trained Diagnostic Measurements**:
   - In `L2`, static label self-attention ($1.651$) dominates the document term ($0.034$) by $48.42\times$.
   - In `L2_NO_SA`, cross-attention remains diffuse (entropy 3.945 / 3.989, 98.9% uniform), with cross-document document term variance of only $0.00207$ (vs. $0.05447$ across labels).
   - Paired with the shared scalar classifier ($W \in \mathbb{R}^{1 \times H}$), this locks label rankings into identical order across all documents.
+  - Earlier synthetic probe was an illustrative baseline, not the true initialization state of trained models.
+  - Trained L2 gradient ratios are not identical across losses (document-to-classifier ratio was $2.695 \times 10^{-5}$ under BCE vs $3.769 \times 10^{-4}$ under Focal); BCE as a training objective remains untested in CSAM.
   - Comprehensive empirical analysis documented in [`docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`](docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md).
+
+### Prepared DR4 Controlled Screening: Variant `L2_A5B` (Unshared Per-Label Classifier)
+- **Status**: Prepared as an alternative architectural interpretation; GPU training NOT launched.
+- **Design**: Strict single-component ablation retaining label-label self-attention, replacing shared classifier $W \in \mathbb{R}^{1 \times H}$ with unshared $W \in \mathbb{R}^{k \times H}$ and shared scalar bias $b \in \mathbb{R}$.
+- **Causality Limit**: If `L2_A5B` fails, this does not prove that document-label dot-product attention is the sole remaining failure source.
 
 ---
 

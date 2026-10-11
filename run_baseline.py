@@ -255,6 +255,15 @@ _CROSSCHECK_REFS = {
         "n_distinct_argmax":  (19,       2),
         "prior_p_at_1_hits":  (63,       0),
     },
+    "L2_A5B": {
+        "mean_max_alpha":     (0.029699, 0.001),
+        "alpha_one_hot_frac": (0.0,      0.0),
+        "alpha_entropy_mean": (3.964148, 0.01),
+        "S_mean":             (6.036183, 0.5),
+        "S_std":              (0.522010, 0.1),
+        "n_distinct_argmax":  (19,       2),
+        "prior_p_at_1_hits":  (63,       0),
+    },
 }
 
 
@@ -272,7 +281,7 @@ def _run0_step0_crosscheck(s0, variant, out_base):
     if os.path.exists(ref_path):
         try:
             _ref_data = json.load(open(ref_path))
-            for v in ("L", "L2", "L2_NO_SA"):
+            for v in ("L", "L2", "L2_NO_SA", "L2_A5B"):
                 if v in _ref_data.get("variants", {}):
                     vr = _ref_data["variants"][v]
                     tol = _ref_data.get("tolerance", {})
@@ -367,9 +376,12 @@ def cmd_run0(args):
     candidates = [c.strip() for c in args.candidates.split(",")]
     seed = cfg.get("seed", 42)
 
-    PROTECTED_RUN_IDS = {"RUN_0", "DR1", "DR2", "RUN_0_P1F_EXT1"}
+    PROTECTED_RUN_IDS = {
+        "RUN_0", "DR1", "DR2", "RUN_0_P1F_EXT1",
+        "RUN_0_L2_NO_SA_ABLATION_20261011_A", "RUN_0_L2_NO_SA_REPLAY_20261011_B",
+    }
     if run_id in PROTECTED_RUN_IDS:
-        print(f"ERROR: Experiment ID {run_id} is a protected historical run. Never overwrite RUN_0, DR1, or DR2.")
+        print(f"ERROR: Experiment ID {run_id} is a protected historical run. Never overwrite historical evidence.")
         sys.exit(1)
     out_base = os.path.join(ROOT, "experiments", run_id)
     if os.path.exists(out_base) and (os.path.isfile(out_base) or (os.path.isdir(out_base) and os.listdir(out_base))):

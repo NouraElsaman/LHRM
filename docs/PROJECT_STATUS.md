@@ -26,13 +26,21 @@
 
 ## Completed DR3 Checkpoint Replay & Trained Gradient Diagnostic (`RUN_0_L2_NO_SA_REPLAY_20261011_B`)
 - **Status**: Executed on Kaggle GPU, deliverables downloaded to `D:\LHRM_KAGGLE_ARTIFACTS\RUN_0_L2_NO_SA_REPLAY_20261011_B\`, verified with SHA-256 manifest, and integrated.
-- **Result**: Replicated the exact failure mode of `RUN_0_L2_NO_SA_ABLATION_20261011_A` (both variants NOT VIABLE, tying static frequency prior of 63/200 hits).
+- **Result**: Replicated the V1–V5 pass/fail profile and exact P@1 hit count (63/200, 31.50%) of `RUN_0_L2_NO_SA_ABLATION_20261011_A`, not bitwise-identical predictions. Observed prediction differences between collinear labels (`cmp-lg` vs `cond-mat.dis-nn`) are not attributed solely to GPU nondeterminism without direct trajectory evidence.
 - **Checkpoints Preserved**: Successfully recovered and verified lightweight step-300 model-only checkpoints for both `L2` (`d703579c...`, 417.7 MB) and `L2_NO_SA` (`c9dd8ebc...`, 417.7 MB).
 - **Trained Diagnostic Findings**:
   - In `L2`, the static label-label self-attention term ($1.651$) dominates the document term ($0.034$) by $48.42\times$.
   - In `L2_NO_SA`, cross-attention remains diffuse (entropy 3.945 / 3.989, 98.9% uniform), causing document term variation across documents to be only $0.00207$ (vs. $0.05447$ across labels).
   - Paired with the shared scalar classifier ($W \in \mathbb{R}^{1 \times H}$), this locks label rankings into identical order across all documents.
+  - The earlier synthetic probe was an illustrative baseline, not the true initialization state of the trained models.
+  - Trained L2 gradient ratios are not identical across losses (document-to-classifier ratio was $2.695 \times 10^{-5}$ under BCE vs $3.769 \times 10^{-4}$ under Focal); BCE as a training objective remains untested in CSAM.
   - Full analysis documented in [`docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`](experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md).
+
+## Prepared DR4 Controlled Screening: Variant `L2_A5B` (Unshared Per-Label Classifier)
+- **Status**: Prepared and preregistered; GPU training NOT launched (requires user authorization).
+- **Scientific Status**: Alternative architectural interpretation of Figure 2, not a confirmed paper-faithful implementation.
+- **Single Component Ablation**: Replaces shared classifier `nn.Linear(H, 1)` with unshared per-label parameter $W \in \mathbb{R}^{k \times H}$ and shared scalar bias $b \in \mathbb{R}$. Label-label self-attention remains fully ENABLED; learning rate remains approved AAPD baseline $2\times 10^{-5}$; steps locked to 300; seed 42.
+- **Causality Limit**: If `L2_A5B` fails, it demonstrates that unsharing the classifier head alone is insufficient to resolve ranking collapse under 300-step screening; it does not prove that document-label dot-product attention is the sole remaining failure source.
 
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.

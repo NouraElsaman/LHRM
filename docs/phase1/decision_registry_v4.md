@@ -86,13 +86,21 @@ Impact if wrong: A5b alternative (W in R^{k x H}) would have k times more parame
 
 ---
 
-## A5b — Figure 2 Fallback Reading
+## A5b — Figure 2 Alternative Architectural Interpretation
 
-Class: NEA (FALLBACK ONLY; requires user approval to activate)
+Class: NEA (FALLBACK ONLY; requires user approval before GPU execution)
 Condition: Only if both Variant L and L2 fail viability criteria V1-V5 in RUN_0.
 Reading: Figure 2 caption could be interpreted as W in R^{k x H} (one row per label,
-  concatenated output). This makes the classifier non-shared.
-Impact: k x more parameters in the head; different optimisation.
+  explicit label-wise projection: logits[b, i] = dot(W[i], h_final[b, i]) + b).
+  Preserves shared scalar bias b in R.
+Scientific Status: Alternative architectural interpretation of Figure 2, NOT a
+  confirmed paper-faithful implementation.
+Execution Status: PREPARED for DR4 controlled screening (tests and packaging);
+  NOT executed on GPU (pending authorization).
+Causality Limit: If A5b fails, this does NOT prove that document-label dot-product
+  attention is the sole remaining failure source.
+Impact: k x more parameters in the classifier head (k x H instead of 1 x H); decoupled
+  per-label gradient accumulation.
 
 ---
 

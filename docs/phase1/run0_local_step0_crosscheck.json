@@ -250,6 +250,28 @@
         0.0012550969840958714,
         0.0006231165025383234
       ]
+    },
+    "L2_A5B": {
+      "alpha_one_hot_frac": 0.0,
+      "mean_max_alpha": 0.029698796570301056,
+      "n_distinct_argmax": 19,
+      "argmax_alpha_is_true_frac": 0.025,
+      "alpha_entropy_mean": 3.9641480445861816,
+      "S_mean": 6.036182880401611,
+      "S_std": 0.5220100283622742,
+      "S_min": 4.321147441864014,
+      "S_max": 7.470827102661133,
+      "logit_std_frac": 0.0,
+      "p_at_1_hits": 0,
+      "p_at_1": 0.0,
+      "prior_p_at_1_hits": 63,
+      "prior_p_at_1": 0.315,
+      "n_docs": 200,
+      "n_labels": 54,
+      "seed": 42,
+      "precision_mode": "fp32_no_autocast",
+      "amp_for_training": true,
+      "status": "OK"
     }
   }
 }
