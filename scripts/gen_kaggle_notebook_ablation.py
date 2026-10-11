@@ -412,22 +412,21 @@ BASE_CFG = WORK / "@CONFIG@"
 EXP_DIR = WORK / "experiments" / RUN_ID
 
 # 1. Fail-closed check if experiment directory already exists with prior results
+# Note: Do not create or populate EXP_DIR here. run_baseline.py::cmd_run0 requires
+# the target directory to either not exist or be empty, and creates/populates it itself.
 if EXP_DIR.exists() and (EXP_DIR.is_file() or any(EXP_DIR.iterdir())):
     raise RuntimeError(
         f"FAIL-CLOSED: Target experiment directory {EXP_DIR} already exists and is non-empty!\\n"
         f"Never overwrite existing experiment artifacts."
     )
-EXP_DIR.mkdir(parents=True, exist_ok=True)
 
-# 2. Stage locked 200 validation sample IDs
+# 2. Validate original frozen 200 Dev sample IDs directly from RUN_0 reference
 src_ids_file = WORK / "experiments/RUN_0/run0_val_sample_ids.json"
-dest_ids_file = EXP_DIR / "run0_val_sample_ids.json"
-assert src_ids_file.is_file(), "Locked validation IDs missing from bundle!"
-shutil.copy2(src_ids_file, dest_ids_file)
-val_ids = json.load(open(dest_ids_file))
+assert src_ids_file.is_file(), "Locked validation IDs missing from bundle at experiments/RUN_0/run0_val_sample_ids.json!"
+val_ids = json.load(open(src_ids_file))
 assert len(val_ids) == 200, f"Expected 200 validation IDs, got {len(val_ids)}"
 assert val_ids[:5] == [3, 6, 11, 25, 27], "Validation IDs prefix mismatch"
-print("Staged locked 200 validation IDs to experiment dir: PASS", flush=True)
+print("Validated locked 200 validation IDs directly from RUN_0: PASS", flush=True)
 
 # 3. Verify frequency prior on the 200 validation docs is exactly 63/200
 import numpy as np
@@ -662,18 +661,37 @@ print("\\n" + "="*65)
 print("RANKING DIVERSITY ANALYSIS (STEP 300)")
 print("="*65)
 
+# Load canonical label order for AAPD to verify consistent ordering across records
+labels_file = WORK / "data/processed/AAPD/labels.json"
+canonical_labels = json.load(open(labels_file))
+assert len(canonical_labels) == 54, f"Expected 54 canonical labels, got {len(canonical_labels)}"
+
 diversity_results = {}
 for cand in ["L2", "L2_NO_SA"]:
     preds_p = EXP_DIR / f"variant_{cand}/val_sample_predictions.json"
-    data = json.load(open(preds_p))
-    y_pred = np.array(data["y_pred"])  # [200, 54] logits
+    records = json.load(open(preds_p))
+    assert isinstance(records, list), f"Expected list of prediction records, got {type(records)}"
+    assert len(records) == 200, f"Expected 200 prediction records, got {len(records)}"
     
-    # Top-1 label per doc
-    top1_indices = np.argmax(y_pred, axis=1)
+    # Extract prediction scores vector (probabilities from sigmoid) for each document
+    scores_matrix = []
+    for idx, rec in enumerate(records):
+        assert "scores" in rec and "labels" in rec, f"Record {idx} missing required fields ('scores', 'labels')"
+        assert rec["labels"] == canonical_labels, f"Record {idx} label order does not match canonical label order"
+        rec_scores = rec["scores"]
+        assert len(rec_scores) == 54, f"Record {idx} scores length {len(rec_scores)} != 54"
+        scores_matrix.append(rec_scores)
+    
+    scores = np.array(scores_matrix, dtype=np.float32)  # [200, 54] prediction scores / probabilities
+    assert scores.shape == (200, 54), f"Unexpected prediction scores shape: {scores.shape}"
+    assert np.all(np.isfinite(scores)), f"Variant {cand} prediction scores contain NaN or Inf!"
+    
+    # Top-1 label per doc (based on prediction scores/probabilities)
+    top1_indices = np.argmax(scores, axis=1)
     distinct_top1 = len(set(top1_indices.tolist()))
     
     # Ordered Top-3 labels per doc
-    top3_indices = np.argsort(-y_pred, axis=1)[:, :3]
+    top3_indices = np.argsort(-scores, axis=1)[:, :3]
     top3_tuples = [tuple(row.tolist()) for row in top3_indices]
     distinct_top3 = len(set(top3_tuples))
     

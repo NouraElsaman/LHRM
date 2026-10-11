@@ -200,3 +200,132 @@ def test_10_unchanged_l2_behavior():
     assert model_l.variant == "L"
     assert model_l.csam.use_label_sa is True
     assert model_l.csam.scale_similarity is False
+
+
+def test_11_cell4_cell5_sequence_no_premature_mkdir(tmp_path):
+    """
+    Regression test for BUG 1: Cell 4 must NOT prematurely create or populate
+    the experiment output directory, which would trip cmd_run0's fail-closed guard.
+    """
+    with open(NOTEBOOK_PATH, "r", encoding="utf-8") as f:
+        nb = json.load(f)
+
+    # 1. Assert notebook Cell 4 does not create or copy into EXP_DIR ahead of time
+    cell4_code = "".join(nb["cells"][4]["source"])
+    assert "EXP_DIR.mkdir" not in cell4_code, "Cell 4 must not mkdir EXP_DIR prematurely"
+    assert "shutil.copy2(src_ids_file, dest_ids_file)" not in cell4_code, "Cell 4 must not write into EXP_DIR"
+    assert "Validated locked 200 validation IDs directly from RUN_0" in cell4_code
+
+    # 2. Simulate Cell 4 -> Cell 5 lifecycle
+    run_id = "TEST_RUN_ABLATION_REGRESSION"
+    target_exp_dir = tmp_path / "experiments" / run_id
+
+    # Cell 4 check: directory does not exist or is empty
+    if target_exp_dir.exists() and (target_exp_dir.is_file() or any(target_exp_dir.iterdir())):
+        raise RuntimeError("FAIL-CLOSED triggered")
+
+    # Cell 4 validates IDs directly from source
+    assert os.path.isfile(VAL_IDS_PATH)
+    val_ids = json.load(open(VAL_IDS_PATH))
+    assert len(val_ids) == 200
+
+    # Before cmd_run0 starts, target_exp_dir must not be non-empty
+    assert not target_exp_dir.exists() or not os.listdir(str(target_exp_dir))
+
+    # cmd_run0 preflight check guard:
+    out_base = str(target_exp_dir)
+    guard_triggered = False
+    if os.path.exists(out_base) and (os.path.isfile(out_base) or (os.path.isdir(out_base) and os.listdir(out_base))):
+        guard_triggered = True
+    assert not guard_triggered, "cmd_run0 fail-closed guard tripped on fresh run!"
+
+    # cmd_run0 creates directory and copies freeze IDs cleanly
+    os.makedirs(out_base, exist_ok=True)
+    freeze_ids_path = VAL_IDS_PATH
+    saved_ids_path = os.path.join(out_base, "run0_val_sample_ids.json")
+    with open(freeze_ids_path) as f:
+        copied_ids = json.load(f)
+    with open(saved_ids_path, "w") as f:
+        json.dump(copied_ids, f)
+    assert os.path.isfile(saved_ids_path)
+    assert json.load(open(saved_ids_path)) == val_ids
+
+    # 3. Verify guard DOES trigger if non-empty directory pre-existed (historical preservation)
+    if os.path.exists(out_base) and (os.path.isfile(out_base) or (os.path.isdir(out_base) and os.listdir(out_base))):
+        guard_triggered = True
+    assert guard_triggered, "cmd_run0 must fail-closed if target directory already has artifacts"
+
+
+def test_12_val_sample_predictions_schema_and_diversity(tmp_path):
+    """
+    Regression test for BUG 2: Ensure val_sample_predictions.json list-of-records schema
+    is parsed correctly and ranking diversity is accurately calculated from prediction scores.
+    """
+    import numpy as np
+    from lhrm_baseline.train import save_predictions
+
+    with open(NOTEBOOK_PATH, "r", encoding="utf-8") as f:
+        nb = json.load(f)
+
+    # 1. Verify notebook Cell 7 code uses list-of-records schema and prediction scores
+    cell7_code = "".join(nb["cells"][7]["source"])
+    assert 'records = json.load(open(preds_p))' in cell7_code
+    assert 'assert isinstance(records, list)' in cell7_code
+    assert 'scores_matrix.append(rec_scores)' in cell7_code
+    assert 'data["y_pred"]' not in cell7_code, "Notebook must not use invalid data['y_pred'] key"
+
+    # 2. Build realistic prediction fixture using save_predictions()
+    defs_path = os.path.join(ROOT, "Label_Definition", "arxiv_labels_definitions.json")
+    with open(defs_path) as f:
+        defs_data = json.load(f)
+    label_order = list(defs_data.keys())
+    assert len(label_order) == 54
+
+    n_docs = 200
+    n_labels = 54
+    np.random.seed(42)
+
+    # Create synthetic true binary labels and predicted probabilities
+    y_true = np.zeros((n_docs, n_labels), dtype=np.float32)
+    # Set 1-3 positive labels per doc
+    for i in range(n_docs):
+        pos_idx = [i % n_labels, (i + 1) % n_labels]
+        y_true[i, pos_idx] = 1.0
+
+    # Create synthetic predicted probabilities (scores from sigmoid in [0, 1])
+    y_pred = np.random.uniform(0.01, 0.40, size=(n_docs, n_labels)).astype(np.float32)
+    # Give document i highest score at label (i % 54) to produce 54 distinct top-1 labels
+    for i in range(n_docs):
+        y_pred[i, i % n_labels] = 0.95
+        y_pred[i, (i + 1) % n_labels] = 0.85
+        y_pred[i, (i + 2) % n_labels] = 0.75
+
+    fixture_path = str(tmp_path / "val_sample_predictions.json")
+    save_predictions(y_true, y_pred, label_order, fixture_path)
+
+    # 3. Execute exact Cell 7 parsing logic on the fixture
+    records = json.load(open(fixture_path))
+    assert isinstance(records, list)
+    assert len(records) == 200
+
+    scores_matrix = []
+    for idx, rec in enumerate(records):
+        assert "scores" in rec and "labels" in rec
+        assert rec["labels"] == label_order
+        rec_scores = rec["scores"]
+        assert len(rec_scores) == 54
+        scores_matrix.append(rec_scores)
+
+    scores = np.array(scores_matrix, dtype=np.float32)
+    assert scores.shape == (200, 54)
+    assert np.all(np.isfinite(scores))
+
+    # Diversity metrics
+    top1_indices = np.argmax(scores, axis=1)
+    distinct_top1 = len(set(top1_indices.tolist()))
+    assert distinct_top1 == 54, f"Expected 54 distinct top-1, got {distinct_top1}"
+
+    top3_indices = np.argsort(-scores, axis=1)[:, :3]
+    top3_tuples = [tuple(row.tolist()) for row in top3_indices]
+    distinct_top3 = len(set(top3_tuples))
+    assert distinct_top3 == 54, f"Expected 54 distinct top-3 patterns, got {distinct_top3}"
