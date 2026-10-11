@@ -272,7 +272,7 @@ def _run0_step0_crosscheck(s0, variant, out_base):
     if os.path.exists(ref_path):
         try:
             _ref_data = json.load(open(ref_path))
-            for v in ("L", "L2"):
+            for v in ("L", "L2", "L2_NO_SA"):
                 if v in _ref_data.get("variants", {}):
                     vr = _ref_data["variants"][v]
                     tol = _ref_data.get("tolerance", {})
@@ -367,8 +367,12 @@ def cmd_run0(args):
     candidates = [c.strip() for c in args.candidates.split(",")]
     seed = cfg.get("seed", 42)
 
+    PROTECTED_RUN_IDS = {"RUN_0", "DR1", "DR2", "RUN_0_P1F_EXT1"}
+    if run_id in PROTECTED_RUN_IDS:
+        print(f"ERROR: Experiment ID {run_id} is a protected historical run. Never overwrite RUN_0, DR1, or DR2.")
+        sys.exit(1)
     out_base = os.path.join(ROOT, "experiments", run_id)
-    if os.path.exists(out_base) and os.path.isdir(out_base) and os.listdir(out_base):
+    if os.path.exists(out_base) and (os.path.isfile(out_base) or (os.path.isdir(out_base) and os.listdir(out_base))):
         print(f"ERROR: Experiment directory {out_base} already exists and is non-empty.")
         print("To protect historical evidence, choose a unique --run_id.")
         sys.exit(1)

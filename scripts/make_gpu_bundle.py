@@ -70,6 +70,8 @@ def main():
     parser.add_argument("--config", default="configs/final/aapd_baseline.yaml")
     parser.add_argument("--run_id", default="lhrm_run0_aapd_L_focal_seed42_v1")
     parser.add_argument("--out", default="bundles")
+    parser.add_argument("--bundle_name", default=None,
+                        help="Explicit filename for bundle ZIP")
     parser.add_argument("--include_data", action="store_true",
                         help="Include data/processed/AAPD/ in bundle (large; ~50 MB)")
     parser.add_argument("--require_clean", action="store_true",
@@ -85,7 +87,7 @@ def main():
 
     os.makedirs(os.path.join(ROOT, args.out), exist_ok=True)
     date_str = time.strftime("%Y%m%d_%H%M%S")
-    bundle_name = f"lhrm_gpu_bundle_{date_str}.zip"
+    bundle_name = args.bundle_name or f"lhrm_gpu_bundle_{date_str}.zip"
     bundle_path = os.path.join(ROOT, args.out, bundle_name)
 
     # Collect files
@@ -123,6 +125,7 @@ def main():
         "docs/phase1/run0_preregistration.md",
         "docs/phase1/decision_registry_v4.md",
         "docs/phase1/aapd_data_decision.md",
+        "docs/experiments/CSAM_NO_SA_EXPERIMENT_PLAN.md",
     ]
     for doc in docs:
         fp = os.path.join(ROOT, doc)
@@ -206,6 +209,7 @@ def main():
 
     # Clean up temp manifest
     os.remove(manifest_path)
+    return bundle_path, bundle_sha, os.path.getsize(bundle_path)
 
 
 if __name__ == "__main__":
