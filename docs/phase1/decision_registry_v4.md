@@ -383,8 +383,8 @@ Class: SCIENTIFIC RESEARCH AUDIT & ROOT-CAUSE DECISION
 Date: 2026-10-11
 Status: COMPLETED (RESEARCH DECISION / POST-ABLATION AUDIT)
 Decision: Formally record the outcome of controlled ablation `RUN_0_L2_NO_SA_ABLATION_20261011_A` (L2 vs L2_NO_SA, 300 steps), conduct post-ablation evidence audit, and halt further blind architectural ablations.
-Rationale: L2_NO_SA failed V4 (0/54) and V5 (63/200 == prior), demonstrating that removing label-label self-attention does not resolve ranking collapse. Mathematical decomposition identifies a primary gradient attenuation bottleneck ($\alpha / \sqrt{H} \approx 7 \times 10^{-4}$) and shared scalar readout projection ($W \in \mathbb{R}^{1 \times H}$) as the structural cause.
+Rationale: L2_NO_SA failed V4 (0/54) and V5 (63/200 == prior), demonstrating that removing label-label self-attention does not resolve ranking collapse. Mathematical decomposition identifies a primary gradient attenuation bottleneck ($\alpha / \sqrt{H} \approx 6.7 \times 10^{-4}$) and shared scalar readout projection ($W \in \mathbb{R}^{1 \times H}$) as plausible structural hypotheses under investigation.
 Finding: Refuted hypothesis that label-label self-attention was the sole cause of ranking collapse.
 Finding: Data collinearity identified (identical ground truth columns for `cmp-lg` and `cond-mat.dis-nn`).
-Action: Recommended minimum next step is a single-step micro-probe measuring the gradient norm ratio $\|\nabla_{h_T} \mathcal{L}\| / \|\nabla_{W, b} \mathcal{L}\|$ rather than unconstrained training.
+Action: Executed controlled standalone diagnostic micro-probe (`scripts/probe_csam_gradient_paths.py`, documented in `docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`). Recommended next empirical step is retrieving step-300 checkpoint tensors (`variant_L2/checkpoints/step_300.pt` and `variant_L2_NO_SA/checkpoints/step_300.pt`) to evaluate trained activation states directly.
 Detailed postmortem: `docs/experiments/L2_NO_SA_POSTMORTEM.md`.

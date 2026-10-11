@@ -22,7 +22,7 @@
 ## Completed Controlled Ablation: L2 vs L2_NO_SA (`RUN_0_L2_NO_SA_ABLATION_20261011_A`)
 - A mathematically isolated ablation of Variant `L2` which removes the label-label self-attention projection term ($A_{ij} h_{L_j}$).
 - **Status**: Executed on Kaggle GPU (300 steps per candidate) and independently audited (`DR3`).
-- **Result**: Decisively **NOT VIABLE**. Both variants failed V4 and V5 (Top-1 hits 63/200 == frequency prior 63/200). Removing label-label self-attention tightened ranking collapse from 2 distinct Top-1 labels to 1 (200/200 assigned `cond-mat.dis-nn`), and reduced V4 passing labels from 20/54 to 0/54. Empirically refutes the hypothesis that label-label self-attention was the sole cause of ranking collapse. Detailed investigation documented in [`docs/experiments/L2_NO_SA_POSTMORTEM.md`](experiments/L2_NO_SA_POSTMORTEM.md).
+- **Result**: Decisively **NOT VIABLE**. Both variants failed V4 and V5 (Top-1 hits 63/200 == frequency prior 63/200). Removing label-label self-attention tightened ranking collapse from 2 distinct Top-1 labels to 1 (200/200 assigned `cond-mat.dis-nn`), and reduced V4 passing labels from 20/54 to 0/54. Empirically refutes the hypothesis that label-label self-attention was the sole cause of ranking collapse. Detailed investigation documented in [`docs/experiments/L2_NO_SA_POSTMORTEM.md`](experiments/L2_NO_SA_POSTMORTEM.md) and controlled micro-probe in [`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](experiments/DR3_GRADIENT_MICRO_PROBE.md).
 
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.

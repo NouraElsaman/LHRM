@@ -16,12 +16,12 @@ The controlled ablation experiment `RUN_0_L2_NO_SA_ABLATION_20261011_A` evaluate
 1. **Removing label-label self-attention did NOT eliminate ranking collapse; it exacerbated it.**
    - In `L2`, Top-1 predicted label was `cond-mat.dis-nn` for 199/200 documents and `cmp-lg` for 1/200 documents (2 distinct Top-1 labels, 2 distinct Top-3 ranking sequences).
    - In `L2_NO_SA`, Top-1 predicted label was `cond-mat.dis-nn` for **200/200 documents** (1 distinct Top-1 label, 1 distinct Top-3 ranking sequence).
-   - Viability Criterion V4 (per-label logit std across documents $> 0.01$ on $\ge 28$ labels) dropped from 20/54 in `L2` to **0/54 in `L2_NO_SA`** (mean logit std across documents fell from $0.0104$ to $0.0026$).
-   - Viability Criterion V5 (P@1 hits $>$ frequency prior 63) failed in both variants, tying the empirical dataset prior of **63/200** ($31.50\%$).
+   - Viability Criterion V4 (per-label raw-logit std across validation documents $> 0.01$ on $\ge 28$ labels) dropped from 20/54 in `L2` to **0/54 in `L2_NO_SA`** (mean raw-logit std across documents fell from $0.0104$ to $0.0026$; a result of 0/54 means no labels reached the 0.01 threshold, not zero variance).
+   - Viability Criterion V5 (integer P@1 hits strictly exceeding frequency prior of 63) failed in both variants, tying the empirical dataset prior of **63/200** ($31.50\%$).
 2. **Definitive Refutation of Primary Working Hypothesis:**
    The hypothesis that label-label self-attention was the sole or primary root cause of CSAM ranking collapse is **empirically refuted**. The collapse persists and tightens when the self-attention term is completely excised.
-3. **Core Mathematical Mechanism Identified:**
-   In CSAM, the document representation $h_T$ influences logits exclusively through the scalar cross-attention weight $\alpha_{b, i} \in (0, 1)$, normalized across all 54 labels ($\sum_i \alpha_{b, i} = 1$). Because $\alpha_{b, i} \approx \frac{1}{54} \approx 0.0185$, gradients backpropagating into the document encoder $h_T$ are attenuated by $\frac{\alpha}{\sqrt{H}} \approx 7 \times 10^{-4}$ (over $1,100\times$ smaller than classifier bias gradients). Coupled with a shared 1D scalar linear projection ($W \in \mathbb{R}^{1 \times H}$), the architecture cannot learn document-conditioned label separation within 300 steps under Focal Loss.
+3. **Plausible Architectural Mechanism (Hypothesis under Investigation):**
+   In CSAM, the document representation $h_T$ influences logits exclusively through the scalar cross-attention weight $\alpha_{b, i} \in (0, 1)$, normalized across all 54 labels ($\sum_i \alpha_{b, i} = 1$). Because $\alpha_{b, i} \approx \frac{1}{54} \approx 0.0185$, the analytical derivative of attention with respect to $h_T$ contains a factor $\frac{\bar{\alpha}}{\sqrt{H}} \approx 6.7 \times 10^{-4}$. Controlled diagnostic micro-probing ([`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](DR3_GRADIENT_MICRO_PROBE.md)) confirms that at initialization, the static label-label self-attention projection is $53.3\times$ larger than the document-dependent attention contribution in L2, and document gradient norms are substantially smaller than classifier updates. However, proving whether this structural property was the causal root cause of failure across the full 300 steps requires direct inspection of the saved step-300 checkpoint weights.
 
 ---
 
@@ -44,35 +44,33 @@ The controlled ablation experiment `RUN_0_L2_NO_SA_ABLATION_20261011_A` evaluate
 
 ## 3. Evidence Inventory & Internal Checksum Audit
 
-All 16 members of the evidence archive were extracted and independently verified against the internal manifest `SHA256SUMS.txt`:
-
-| Archive Path | Compressed Size | Uncompressed Size | Internal SHA-256 | Verification |
-| :--- | :--- | :--- | :--- | :--- |
-| `env.json` | 200 B | 310 B | `a44094f9c1d03986056957c2d3c35a8d6e216d003b378911d85262963a6f17e8` | **MATCH** |
-| `resolved_config.json` | 448 B | 965 B | `547a77872852a13eaadda4e492a9761a787bc9e3c227cd415695021268bb3792` | **MATCH** |
-| `run0_decision.json` | 5,502 B | 25,803 B | `906f4b967501b2533f0ee6ff8e4fcb3a351511d9253b5bba7045efe0c42c6b86` | **MATCH** |
-| `run0_val_sample_ids.json` | 382 B | 976 B | `25912e362b0180f0b47a694ecf1d29c35f4140c87375a8053a62fee6850df0a8` | **MATCH** |
-| `variant_L2/step0_diagnostics.json` | 822 B | 2,026 B | `bdbe96b3120444f8a05026469afc9390bb2e4ebe91cf221ae76f4d80434525db` | **MATCH** |
-| `variant_L2/step300_diagnostics.json` | 884 B | 2,021 B | `f766f01e93a375d35ec42c6289177feb0e4dc4ab1b5d77ffdf96bcff857b39f4` | **MATCH** |
-| `variant_L2/train.log` | 2,243 B | 6,792 B | `01d595e00c1d2c5b6a3dd4cde6daeb5719dd8ed1e7f7e592399cb2f143f64966` | **MATCH** |
-| `variant_L2/val_sample_predictions.json` | 85,910 B | 490,240 B | `aed231f1c6b0d2515371bac947ff32a69b95f4ad36cb8cff68f2f940eaee4c5a` | **MATCH** |
-| `variant_L2_NO_SA/step0_diagnostics.json` | 828 B | 2,035 B | `d52e5f8ddc58afdf8375e513a1a99d4f4889a8bc6a453571a4abbc302e5f60b5` | **MATCH** |
-| `variant_L2_NO_SA/step300_diagnostics.json` | 868 B | 2,041 B | `2f77bcd9907d72c282d5f333486094094c2231f8c5fbbb20dd838fd3caf0276a` | **MATCH** |
-| `variant_L2_NO_SA/train.log` | 2,271 B | 6,792 B | `dfe9862e2f1bebd35db5b0e078d401fc456a2298177ed1b6f94af16ea0b87ace` | **MATCH** |
-| `variant_L2_NO_SA/val_sample_predictions.json` | 85,744 B | 486,645 B | `ce04a3ed9efd49d8837a9484b3a09b9793f68ecbf511c7cfd54bba20164ed195` | **MATCH** |
-| `OFFICIAL_BERT_SOURCE.json` | 280 B | 476 B | *Verified upstream Hugging Face metadata* | **MATCH** |
-| `ABLATION_SUMMARY.json` | 640 B | 1,741 B | *Verified Kaggle execution audit summary* | **MATCH** |
-| `aapd_ablation_runtime.yaml` | 840 B | 2,630 B | *Verified runtime configuration* | **MATCH** |
-| `SHA256SUMS.txt` | 480 B | 1,566 B | *Self-manifest checksum reference* | **MATCH** |
+The evidence archive contains **16 ZIP members** in total. The internal manifest `SHA256SUMS.txt` lists cryptographic checksums for **16 files recorded during execution**:
+- **12 archived experiment files** present inside the ZIP and individually verified byte-for-byte against `SHA256SUMS.txt`:
+  - `env.json`
+  - `resolved_config.json`
+  - `run0_decision.json`
+  - `run0_val_sample_ids.json`
+  - `variant_L2/step0_diagnostics.json`
+  - `variant_L2/step300_diagnostics.json`
+  - `variant_L2/train.log`
+  - `variant_L2/val_sample_predictions.json`
+  - `variant_L2_NO_SA/step0_diagnostics.json`
+  - `variant_L2_NO_SA/step300_diagnostics.json`
+  - `variant_L2_NO_SA/train.log`
+  - `variant_L2_NO_SA/val_sample_predictions.json`
+- **4 external checkpoint references** recorded in `SHA256SUMS.txt` but explicitly excluded from the lightweight evidence ZIP:
+  - `variant_L2/checkpoints/step_150.pt` (SHA-256: `c9b8066b34eba197ffc85b16b5e149f73237d4fea251c12a196733d249ae8ea2`)
+  - `variant_L2/checkpoints/step_300.pt` (SHA-256: `04fa6182c9d0da97c86230aa3ee121f9abf938e2e368ce2baefc69e6f44c79c5`)
+  - `variant_L2_NO_SA/checkpoints/step_150.pt` (SHA-256: `7cdfb201ba76018d387e7ab35e1f9ee66811c081750b09ec66fd1b02efdaf513`)
+  - `variant_L2_NO_SA/checkpoints/step_300.pt` (SHA-256: `a49c82c1b21420eae14815375361bf392a0397216f1b89bbbf72da560548ea00`)
+- **4 auxiliary execution context files** completing the 16 ZIP members:
+  - `ABLATION_SUMMARY.json` (SHA-256 verified in bundle provenance)
+  - `SHA256SUMS.txt` (the internal manifest itself)
+  - `aapd_ablation_runtime.yaml` (runtime configuration)
+  - `OFFICIAL_BERT_SOURCE.json` (upstream Hugging Face commit metadata)
 
 ### Checkpoint Provenance Distinction:
-`SHA256SUMS.txt` additionally documents the cryptographic hashes of the four intermediate training checkpoints produced on Kaggle GPU:
-- `variant_L2/checkpoints/step_150.pt`: `c9b8066b34eba197ffc85b16b5e149f73237d4fea251c12a196733d249ae8ea2`
-- `variant_L2/checkpoints/step_300.pt`: `04fa6182c9d0da97c86230aa3ee121f9abf938e2e368ce2baefc69e6f44c79c5`
-- `variant_L2_NO_SA/checkpoints/step_150.pt`: `7cdfb201ba76018d387e7ab35e1f9ee66811c081750b09ec66fd1b02efdaf513`
-- `variant_L2_NO_SA/checkpoints/step_300.pt`: `a49c82c1b21420eae14815375361bf392a0397216f1b89bbbf72da560548ea00`
-
-As mandated by packaging requirements, these large binary checkpoints (~420 MB each) were kept external to the lightweight evidence ZIP. Consequently, post-training internal activation states cannot be directly loaded from the ZIP alone, but all outputs, loss logs, and prediction arrays are fully preserved.
+As mandated by packaging requirements, the large binary checkpoints (~420 MB each) were kept external to the lightweight evidence ZIP. Consequently, post-training internal activation states cannot be directly loaded from the ZIP alone, but all outputs, loss logs, diagnostics, and prediction arrays are fully preserved and 100% verified.
 
 ---
 
@@ -81,10 +79,10 @@ As mandated by packaging requirements, these large binary checkpoints (~420 MB e
 | Metric / Requirement | Variant L2 | Variant L2_NO_SA | Protocol Threshold / Target | Interpretation |
 | :--- | :--- | :--- | :--- | :--- |
 | **V1: Numerical Stability** | **PASS** (0 bad) | **PASS** (0 bad) | 0 NaN/Inf steps | No numerical instability |
-| **V2: Loss Decreased** | **PASS** ($0.027 \to 0.016$) | **PASS** ($0.117 \to 0.080$) | Mean last 50 < Mean first 50 | Both variants minimized training loss |
+| **V2: Decreasing Training Loss** | **PASS** ($0.027 \to 0.016$) | **PASS** ($0.117 \to 0.080$) | Mean last 50 < Mean first 50 | Both variants minimized training loss |
 | **V3: Attention Diversity** | **PASS** (0.0000) | **PASS** (0.0000) | $\alpha_{\text{one-hot}} < 0.90$ | Softmax did not saturate |
-| **V4: Logit Sensitivity** | **FAIL** (20/54) | **FAIL** (**0/54**) | $\ge 28/54$ with std $> 0.01$ | Severe document insensitivity; zero in L2_NO_SA |
-| **V5: P@1 Superiority** | **FAIL** (63/200) | **FAIL** (63/200) | Strict integer $> 63$ | Equal to dataset frequency prior |
+| **V4: Per-Label Logit Variation** | **FAIL** (20/54) | **FAIL** (**0/54**) | $\ge 28/54$ with std $> 0.01$ | Severe document insensitivity; 0/54 labels reached $\ge 0.01$ threshold in L2_NO_SA (mean std = 0.0026) |
+| **V5: P@1 Hits > Prior** | **FAIL** (63/200) | **FAIL** (63/200) | Strict integer $> 63$ | Equal to dataset frequency prior |
 | **Viability Status** | **NOT VIABLE** | **NOT VIABLE** | All 5 criteria must pass | Neither model passes screening |
 | **Distinct Top-1 Labels** | 2 / 54 | **1 / 54** | N/A (Diagnostic) | Rank collapse worsens in NO_SA |
 | **Dominant Top-1 Label** | `cond-mat.dis-nn` (199/200) | `cond-mat.dis-nn` (200/200) | N/A (Diagnostic) | Model outputs static prior label |
@@ -169,25 +167,21 @@ In paper equations (Eqs. 4–8) and `CSAM_L` ([`src/lhrm_baseline/model.py`](fil
    - **For L2_NO_SA:**
      $$\text{logit}_{b, i} = \underbrace{\alpha_{b, i} c_i}_{\text{Document-Dependent}} + \underbrace{b}_{\text{Shared Scalar Constant}}$$
 
-### 6.2 Why the Formulation Fails Under Both Variants
+### 6.2 Structural Analysis & Working Hypotheses
 
-1. **The Relative Magnitude Disparity in L2:**
-   - The self-attention vector $\sum_j A_{ij} h_{L, j}$ is a convex combination of label vectors with magnitude $\|h_L\|$.
-   - The document-dependent vector $\alpha_{b, i} h_{L, i}$ is scaled by $\alpha_{b, i}$. Because $\alpha$ is a softmax distribution across $K=54$ classes, $\alpha_{b, i} \approx \frac{1}{54} \approx 0.0185$.
-   - Therefore, the document-dependent term is **$\sim 50$ times smaller** than the static self-attention term $D_i$.
-   - During optimization, the model adjusts $D_i$ to match the marginal training priors of each label. Because $D_i$ has zero dependence on document text $X$, the rank order across labels is determined almost entirely by $D_i$, freezing the model into a document-independent ranking.
+1. **Relative Magnitude Disparity in L2 (Initialization Measurement vs Trained Trajectory):**
+   - The self-attention vector $\sum_j A_{ij} h_{L, j}$ is a convex combination of label vectors with magnitude on the order of $\|h_L\|$.
+   - The document-dependent vector $\alpha_{b, i} h_{L, i}$ is scaled by $\alpha_{b, i}$. Because $\alpha$ is a softmax distribution across $K=54$ classes, $\alpha_{b, i} \approx \frac{1}{54} \approx 0.0185$ in diffuse regimes.
+   - In the controlled initialization micro-probe ([`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](DR3_GRADIENT_MICRO_PROBE.md)), the projected label-label self-attention contribution ($W (A h_L)_i$) had an average magnitude of **0.6745**, compared to **0.01265** for the document-dependent attention contribution ($\alpha_i W h_{L_i}$) — an initial magnitude disparity of **$53.32\times$**.
+   - *Hypothesis:* During early optimization, the model adjusts the large static term $D_i$ to fit the marginal class frequency priors. However, determining whether this disparity persisted at step 300 requires direct inspection of the saved step-300 checkpoint tensors.
 
-2. **The Gradient Attenuation Collapse in L2_NO_SA:**
-   When $D_i$ is removed, the logit is strictly $\text{logit}_{b, i} = \alpha_{b, i} c_i + b$.
-   Consider the gradient with respect to the document representation $h_T$:
-   $$\frac{\partial \text{logit}_{b, i}}{\partial h_{T, b}} = c_i \frac{\partial \alpha_{b, i}}{\partial h_{T, b}} = \frac{c_i}{\sqrt{H}} \alpha_{b, i} \left( h_{L, i} - \sum_{k=1}^K \alpha_{b, k} h_{L, k} \right)$$
-   Evaluating the magnitude:
-   $$\frac{\alpha_{b, i}}{\sqrt{H}} \approx \frac{1}{54 \cdot \sqrt{768}} \approx \frac{1}{54 \cdot 27.71} \approx 6.68 \times 10^{-4}$$
-   The gradient into the document representation $h_T$ is **attenuated by a factor of 1,500** relative to direct classification!
-   Meanwhile:
-   $$\frac{\partial \text{logit}_{b, i}}{\partial b} = 1.0$$
-   The bias gradient is $1,100\times$ to $1,500\times$ stronger than the document encoder gradient.
-   The model rapidly updates the scalar bias $b$ to match the overall sparsity of the multi-label targets, leaving the document encoder virtually untrained after 300 steps. Logits collapse to $\approx b \approx -0.3$ ($\sigma(b) \approx 0.43$).
+2. **Derivative Factor in L2_NO_SA (Analytical Coefficient vs Measured Norms):**
+   - When $D_i$ is removed, the logit is strictly $\text{logit}_{b, i} = \alpha_{b, i} c_i + b$.
+   - The derivative of attention logits with respect to document representation $h_T$ is:
+     $$\frac{\partial \text{logit}_{b, i}}{\partial h_{T, b}} = c_i \frac{\partial \alpha_{b, i}}{\partial h_{T, b}} = \frac{c_i}{\sqrt{H}} \alpha_{b, i} \left( h_{L, i} - \sum_{k=1}^K \alpha_{b, k} h_{L, k} \right)$$
+   - The coefficient $\frac{\bar{\alpha}}{\sqrt{H}} \approx \frac{1}{54 \cdot \sqrt{768}} \approx 6.69 \times 10^{-4}$ acts as an analytical damping factor on the attention derivative.
+   - In our initialization probe, the gradient norm entering $h_T$ was measured at $1.61 \times 10^{-4}$ in `L2_NO_SA`, while the gradient norm for bias $b$ was $0.2106$ and weight $W$ was $0.0152$.
+   - *Important Distinction:* The analytical coefficient $\approx 6.7 \times 10^{-4}$ is one factor in the chain rule, not an empirical cross-parameter gradient ratio. Furthermore, a cross-parameter gradient ratio does not serve as a universal metric of learning efficiency across different parameter dimensions and optimizer states. The hypothesis that gradient attenuation froze the document encoder during the full 300 steps is plausible, but remains an untested hypothesis for the trained checkpoint without direct tensor inspection.
 
 ---
 
@@ -195,14 +189,14 @@ In paper equations (Eqs. 4–8) and `CSAM_L` ([`src/lhrm_baseline/model.py`](fil
 
 1. [`src/lhrm_baseline/model.py`](file:///D:/LHRM_Publication/src/lhrm_baseline/model.py#L49-L56):
    - **Line 55:** `self.W = nn.Linear(hidden, 1, bias=True)`.
-   - **Finding:** A shared scalar readout projection ($1 \times 768$) is applied to all labels. The model cannot learn independent linear classifiers per label; all per-label expressiveness is forced into the inner products $W h_L$.
+   - **Finding:** A shared scalar readout projection ($1 \times 768$) is applied to all labels. The model cannot learn independent linear classifiers per label; all per-label expressiveness is forced into the inner products $W h_L$. Its role in ranking collapse is a verified architectural property, but its causal primacy remains a hypothesis.
 2. [`src/lhrm_baseline/model.py`](file:///D:/LHRM_Publication/src/lhrm_baseline/model.py#L88-L98):
    - **Line 88:** `alpha = F.softmax(S, dim=1)` (normalized across labels).
    - **Line 98:** `alpha_weighted = alpha.unsqueeze(2) * h_L.unsqueeze(0)` ($[B, K, H]$).
    - **Finding:** Attention weights $\alpha$ are normalized across labels rather than across document tokens. In a 54-label setup, each $\alpha_i$ is numerically suppressed to the scale of $\approx 0.018$.
 3. [`src/lhrm_baseline/losses.py`](file:///D:/LHRM_Publication/src/lhrm_baseline/losses.py#L60-L72):
-   - **Line 66:** `alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)` with $\alpha=0.25$.
-   - **Finding:** In multi-label text classification with 95% negative labels, setting $\alpha=0.25$ assigns weight $0.25$ to rare positives and $0.75$ to abundant negatives. This downweights positive label error by a factor of 3 relative to negatives, encouraging the network to output low, conservative probabilities across all labels.
+   - **Line 66:** `alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)` with positive $\alpha=0.25$ and negative $\alpha=0.75$, with $\gamma=2.0$.
+   - **Finding:** This creates an asymmetric per-element weighting downweighting positive error by a factor of 3 relative to negatives. However, effective gradients also depend on focal modulation $(1 - p_t)^\gamma$ and prediction errors. In our controlled micro-probe, BCE produced $\sim 1.5\times$ to $2.2\times$ larger overall gradients than Focal Loss, but preserved virtually identical relative parameter gradient ratios ($1.9 \times 10^{-4}$ in L2, $1.1 \times 10^{-2}$ in L2_NO_SA). Focal Loss alone did not alter relative parameter gradient dynamics.
 
 ---
 
@@ -238,28 +232,25 @@ In paper equations (Eqs. 4–8) and `CSAM_L` ([`src/lhrm_baseline/model.py`](fil
 
 | Rank | Hypothesis | Category | Status | Primary Supporting Evidence |
 | :---: | :--- | :--- | :--- | :--- |
-| **1** | **Scalar Cross-Attention Readout Bottleneck & Gradient Attenuation** | Architectural | **Demonstrated Mathematically & Experimentally** | $\alpha$ normalization across 54 labels forces $\alpha \approx 0.018$, attenuating gradients into $h_T$ by $7 \times 10^{-4}$ ($1,100\times$ smaller than bias). Removing SA worsened V4 from 20 to 0. |
-| **2** | **Static Label Embedding Dominance Over Weak Document Signal** | Geometric / Parametric | **Strong Empirical Evidence** | In L2, static self-attention vector $D_i$ is $50\times$ larger than $\alpha_i h_{L_i}$. Cross-label variance is 1,658 times larger than cross-document variance. |
-| **3** | **Focal Loss Negative-Class Weighting Bias** | Optimization | **Plausible Hypothesis** | $\alpha=0.25$ assigns $3\times$ higher weight to negative classes ($0.75$) than positive classes ($0.25$), reinforcing conservative low-logit bias. |
+| **1** | **Scalar Cross-Attention Readout Bottleneck & Gradient Damping** | Architectural | **Plausible Hypothesis** (Supported by analytical factor $\approx 6.7 \times 10^{-4}$ and initialization probe; unconfirmed for 300-step checkpoint) | $\alpha$ normalization across 54 labels forces $\alpha \approx 0.018$, damping attention derivatives. Removing SA worsened V4 from 20 to 0. |
+| **2** | **Static Label Embedding Dominance Over Weak Document Signal** | Geometric / Parametric | **Plausible Hypothesis** (Measured $53.3\times$ disparity at step 0 in micro-probe; unconfirmed at step 300) | In L2 initialization probe, static self-attention projected term ($0.675$) is $53.3\times$ larger than document term ($0.0127$). |
+| **3** | **Focal Loss Negative-Class Weighting Bias** | Optimization | **Plausible Hypothesis** (Evaluated in micro-probe: BCE increases gradient magnitude by $\sim 1.5-2.2\times$ but preserves identical parameter gradient ratios) | $\alpha=0.25$ assigns $3\times$ higher weight to negative classes ($0.75$) than positive classes ($0.25$); BCE scales gradients without shifting relative parameter dynamics. |
 | **4** | **Label Definition Semantic Quality / Token Noise** | Data / Representational | **Untested Hypothesis** | BERT CLS embeddings of arXiv label definitions may produce clustered or uninformative initial representations. |
 
 ---
 
 ## 10. Recommended Next Minimum-Cost Diagnostic Action
 
-### Action Name: DR3 Single-Step Gradient & Activation Decomposition Probe
-**Rationale:** Rather than launching another full 300-step or 15-epoch GPU training run, execute a lightweight, deterministic CPU/GPU diagnostic probe on a single mini-batch (or 10 steps) to directly measure:
-1. The exact gradient norm ratio:
-   $$\rho = \frac{\|\nabla_{h_T} \mathcal{L}\|}{\|\nabla_{W, b} \mathcal{L}\|}$$
-   comparing (a) Literal CSAM scalar readout vs (b) Direct per-label linear readout ($W_{\text{direct}} \in \mathbb{R}^{54 \times 768}$).
-2. The loss gradient response under (a) Focal Loss ($\alpha=0.25, \gamma=2.0$) vs (b) Standard BCE.
+### Action Name: Step-300 Checkpoint Activation Retrieval & Diagnostic Evaluation
+**Rationale:** Rather than launching another unconstrained GPU training run or introducing new ad-hoc architectures, retrieve the saved 300-step trained checkpoint files produced during the Kaggle execution:
+- `variant_L2/checkpoints/step_300.pt` (SHA-256: `04fa6182c9d0da97c86230aa3ee121f9abf938e2e368ce2baefc69e6f44c79c5`)
+- `variant_L2_NO_SA/checkpoints/step_300.pt` (SHA-256: `a49c82c1b21420eae14815375361bf392a0397216f1b89bbbf72da560548ea00`)
 
-**Falsification Criteria:**
-- If $\rho$ under CSAM is $> 0.1$, the gradient attenuation hypothesis is weakened.
-- If $\rho$ under CSAM is $< 10^{-3}$, the mathematical gradient bottleneck hypothesis is decisively confirmed as the primary blocker.
+**Diagnostic Execution:**
+Evaluate the verified standalone diagnostic micro-probe ([`scripts/probe_csam_gradient_paths.py`](file:///D:/LHRM_Publication/scripts/probe_csam_gradient_paths.py), documented in [`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](DR3_GRADIENT_MICRO_PROBE.md)) directly on the loaded trained weights without further optimization.
 
-**Evidence Limitation Note:**
-Because the Kaggle evidence ZIP excluded heavy model checkpoints (`step_300.pt`), post-training internal representation tensors ($h_T, h_L, \alpha$) from the completed 300-step run cannot be reconstructed from prediction files alone. Performing this micro-probe will generate the exact internal activation measurements required.
+**Hypothesis Tested:**
+Directly measure whether the trained classifier weights $W$ and bias $b$ evolved to suppress the document term $\alpha_i W h_{L_i}$ or whether $\alpha$ remained diffuse at step 300. If the document term remains orders of magnitude smaller than static biases at step 300, the scalar CSAM bottleneck is proven as the empirical cause of ranking inertia.
 
 ---
 
