@@ -99,6 +99,10 @@ def main():
     to_include.append((os.path.join(ROOT, "run_baseline.py"), "run_baseline.py"))
     to_include.append((os.path.join(ROOT, "scripts", "make_gpu_bundle.py"),
                        "scripts/make_gpu_bundle.py"))
+    to_include.append((os.path.join(ROOT, "scripts", "probe_csam_trained_checkpoint.py"),
+                       "scripts/probe_csam_trained_checkpoint.py"))
+    to_include.append((os.path.join(ROOT, "scripts", "probe_csam_gradient_paths.py"),
+                       "scripts/probe_csam_gradient_paths.py"))
 
     # Config + freeze
     cfg_full = os.path.join(ROOT, args.config)

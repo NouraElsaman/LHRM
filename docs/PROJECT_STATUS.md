@@ -24,6 +24,11 @@
 - **Status**: Executed on Kaggle GPU (300 steps per candidate) and independently audited (`DR3`).
 - **Result**: Decisively **NOT VIABLE**. Both variants failed V4 and V5 (Top-1 hits 63/200 == frequency prior 63/200). Removing label-label self-attention tightened ranking collapse from 2 distinct Top-1 labels to 1 (200/200 assigned `cond-mat.dis-nn`), and reduced V4 passing labels from 20/54 to 0/54. Empirically refutes the hypothesis that label-label self-attention was the sole cause of ranking collapse. Detailed investigation documented in [`docs/experiments/L2_NO_SA_POSTMORTEM.md`](experiments/L2_NO_SA_POSTMORTEM.md) and controlled micro-probe in [`docs/experiments/DR3_GRADIENT_MICRO_PROBE.md`](experiments/DR3_GRADIENT_MICRO_PROBE.md).
 
+## DR3 Checkpoint Replay & Trained Gradient Diagnostic (`RUN_0_L2_NO_SA_REPLAY_20261011_B`)
+- **Status**: Prepared for Kaggle GPU execution via [`notebooks/lhrm_dr3_trained_checkpoint_replay_kaggle.ipynb`](notebooks/lhrm_dr3_trained_checkpoint_replay_kaggle.ipynb).
+- **Objective**: Execute ONE controlled 300-step replay for `L2` and `L2_NO_SA` to recover trained model states (`step_300.pt`), export lightweight model-only checkpoints (`L2_STEP300_MODEL_ONLY.pt`, `L2_NO_SA_STEP300_MODEL_ONLY.pt`), and run authentic post-training gradient diagnostics ([`scripts/probe_csam_trained_checkpoint.py`](scripts/probe_csam_trained_checkpoint.py)) on real AAPD representations without optimizer updates.
+- **Protocol**: Fully detailed in [`docs/experiments/DR3_TRAINED_CHECKPOINT_REPLAY_PROTOCOL.md`](experiments/DR3_TRAINED_CHECKPOINT_REPLAY_PROTOCOL.md).
+
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.
 - **Test Split Evaluation**: Completely locked. No evaluation is performed on the Test split until the final protocol is frozen.
