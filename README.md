@@ -68,8 +68,12 @@ An independent non-CSAM standard BERT Multi-Label Baseline was trained for 15 ep
 ## Current Scientific Limitations
 The paper-derived CSAM architecture (L/L2) has demonstrated a structural bottleneck where it learns a static, document-independent ranking. This indicates that explicitly encoding label descriptions into the same embedding space as document texts without further non-linear projections fails to distinguish document semantics on AAPD.
 
-## Next Experiment: L2_NO_SA
-We hypothesize the label-label self-attention mechanism numerically dominates the representation. The immediate next action is executing the isolated `L2_NO_SA` ablation on Kaggle to evaluate whether removing this term allows document-sensitive ranking to emerge. Downstream HRRM fitting is deferred until this architecture bottleneck is resolved.
+### Completed Controlled Ablation: L2 vs L2_NO_SA (DR3)
+Executed 300 optimizer steps per candidate on Kaggle (`RUN_0_L2_NO_SA_ABLATION_20261011_A`) to evaluate whether removing the label-label self-attention projection term allows document-sensitive ranking to emerge.
+- **Outcome**: Both variants decisively failed V5 (Top-1 hits 63/200 == dataset frequency prior 63/200).
+- Removing self-attention tightened the collapse: V4 logit sensitivity fell from 20/54 to 0/54, and 200/200 documents received identical Top-1 predictions (`cond-mat.dis-nn`).
+- Empirically refutes the hypothesis that label-label self-attention was the sole cause of ranking collapse.
+- Detailed postmortem and mathematical gradient analysis documented in [`docs/experiments/L2_NO_SA_POSTMORTEM.md`](docs/experiments/L2_NO_SA_POSTMORTEM.md).
 
 ---
 
