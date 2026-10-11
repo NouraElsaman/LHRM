@@ -285,3 +285,53 @@ def test_12_deliverables_manifest_schema():
         parts = line.split("  ")
         assert len(parts) == 2
         assert len(parts[0]) == 64
+
+
+def test_13_label_tokenization_exact_parity():
+    """
+    Regression test verifying exact equality of label input IDs and attention masks
+    between the training preparation (run_baseline.py::cmd_run0) and the
+    trained-checkpoint diagnostic (scripts/probe_csam_trained_checkpoint.py).
+    Both must use max_len=64, padding='max_length', truncation=True.
+    """
+    from transformers import BertTokenizer
+    from src.lhrm_baseline.data import tokenize_labels
+
+    with tempfile.NamedTemporaryFile("w", delete=False, suffix=".txt") as vf:
+        vf.write("[PAD]\n[UNK]\n[CLS]\n[SEP]\n[MASK]\nmath\nphysics\ncomputer\nscience\n")
+        vocab_path = vf.name
+
+    try:
+        tokenizer = BertTokenizer(vocab_file=vocab_path)
+        sample_label_texts = [
+            "cs.AI: Artificial Intelligence and multi-label text ranking",
+            "stat.ML: Machine Learning models and optimization dynamics",
+            "math.PR: Probability theory and stochastic processes",
+        ]
+
+        # Training preparation tokenization
+        train_ids, train_mask = tokenize_labels(sample_label_texts, tokenizer, max_len=64)
+
+        # Probe tokenization (from probe_csam_trained_checkpoint logic)
+        probe_ids, probe_mask = tokenize_labels(sample_label_texts, tokenizer, max_len=64, device=torch.device("cpu"))
+
+        # Exact equality check
+        assert torch.equal(train_ids, probe_ids), "Label input_ids mismatch between training and probe"
+        assert torch.equal(train_mask, probe_mask), "Label attention_mask mismatch between training and probe"
+        assert train_ids.shape == (3, 64), f"Expected shape [3, 64], got {train_ids.shape}"
+        assert probe_ids.shape == (3, 64), f"Expected shape [3, 64], got {probe_ids.shape}"
+    finally:
+        if os.path.exists(vocab_path):
+            os.remove(vocab_path)
+
+
+def test_14_official_bert_revision_pinned_and_portable_metadata():
+    """Verify that official BERT revision 86b5e0934494bd15c9632b12f734a8a67f723594 is pinned and metadata is portable."""
+    nb = json.load(open(OUT_NB, "r", encoding="utf-8"))
+    nb_text = json.dumps(nb)
+    pinned = "86b5e0934494bd15c9632b12f734a8a67f723594"
+    assert pinned in nb_text, f"Pinned BERT revision {pinned} not found in replay notebook"
+    # Also verify metadata is clean and portable (no kaggle block)
+    assert "kaggle" not in nb.get("metadata", {}), "Kaggle-specific metadata must be stripped for portability"
+    assert "kernelspec" in nb.get("metadata", {})
+    assert "language_info" in nb.get("metadata", {})

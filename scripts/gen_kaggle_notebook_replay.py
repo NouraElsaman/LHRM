@@ -63,9 +63,10 @@ This Kaggle session replicates the 300-step screening of `L2` and `L2_NO_SA` to 
 1. **Experiment ID:** `{RUN_ID}` (fail-closed if output directory already exists).
 2. **Candidates:** `L2` (full CSAM with label SA) vs `L2_NO_SA` (CSAM without label SA).
 3. **Training Setup:** Seed 42, Focal Loss (gamma=2.0, alpha=0.25), LR 2e-5, weight decay 0.01, AMP enabled, 300 steps per variant.
-4. **Data Isolation:** **Test split is strictly quarantined.** Never read, copied, prepared, predicted, or evaluated. Only AAPD Train (53,840) and Dev (1,000) splits are loaded.
-5. **Fixed Dev Sample:** Locked 200 validation documents from `experiments/RUN_0/run0_val_sample_ids.json` (frequency prior: exactly 63/200).
-6. **Deliverables in `/kaggle/working/`:**
+4. **Data Isolation:** **Test split is strictly quarantined.** Never read, copied, prepared, predicted, or evaluated. Original AAPD `train.csv` and `dev.csv` source files are required from the verified AAPD dataset and verified against official SHA-256 hashes.
+5. **Pretrained BERT:** Official `google-bert/bert-base-uncased` frozen revision `86b5e0934494bd15c9632b12f734a8a67f723594` (matching historical `OFFICIAL_BERT_SOURCE.json`).
+6. **Fixed Dev Sample:** Locked 200 validation documents from `experiments/RUN_0/run0_val_sample_ids.json` (frequency prior: exactly 63/200).
+7. **Deliverables in `/kaggle/working/`:**
    - `L2_STEP300_MODEL_ONLY.pt`
    - `L2_NO_SA_STEP300_MODEL_ONLY.pt`
    - `DR3_TRAINED_GRADIENT_PROBE_RESULTS.json`
@@ -94,6 +95,7 @@ print("GPU:", torch.cuda.get_device_name(0), flush=True)
 import sklearn, transformers, numpy as np
 print(f"Transformers: {transformers.__version__} | NumPy: {np.__version__}")
 
+PINNED_COMMIT = "86b5e0934494bd15c9632b12f734a8a67f723594"
 REPO = "google-bert/bert-base-uncased"
 BERT_DIR = Path("/kaggle/working/google_bert_bert_base_uncased_official")
 SOURCE_META = Path("/kaggle/working/OFFICIAL_BERT_SOURCE.json")
@@ -119,12 +121,11 @@ if not complete_official_cache():
         shutil.rmtree(BERT_DIR)
     for key in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"):
         os.environ.pop(key, None)
-    print("Downloading official pretrained BERT from", REPO, "(Internet ON required)...", flush=True)
-    from huggingface_hub import HfApi, hf_hub_download
+    print("Acquiring official pretrained BERT from", REPO, "@", PINNED_COMMIT, "(Internet ON required)...", flush=True)
+    from huggingface_hub import hf_hub_download
     from transformers import BertModel, BertTokenizer
     
-    revision = HfApi().model_info(REPO).sha
-    assert revision and len(revision) == 40, "Could not resolve immutable official BERT revision"
+    revision = PINNED_COMMIT
     print("Pinned official BERT commit:", revision, flush=True)
     
     tokenizer = BertTokenizer.from_pretrained(REPO, revision=revision)
@@ -145,7 +146,7 @@ if not complete_official_cache():
         assert weight_file is not None, "Missing BERT weights after saving"
         meta = {
             "repo_id": REPO,
-            "source_revision": revision,
+            "source_revision": PINNED_COMMIT,
             "saved_weights_file": weight_file.name,
             "saved_weights_sha256": sha256_bytes(weight_file),
             "bert_config_sha256": sha256_bytes(tmp / "config.json"),
@@ -165,6 +166,9 @@ else:
     print("Official BERT already present in working directory.", flush=True)
 
 meta = json.loads(SOURCE_META.read_text("utf-8"))
+assert meta.get("repo_id") == REPO and meta.get("source_revision") == PINNED_COMMIT, (
+    f"Official BERT source revision mismatch: expected {PINNED_COMMIT}, got {meta.get('source_revision')}"
+)
 assert sha256_bytes(BERT_DIR / meta["saved_weights_file"]) == meta["saved_weights_sha256"]
 assert sha256_bytes(BERT_DIR / "config.json") == meta["bert_config_sha256"]
 assert sha256_bytes(BERT_DIR / "vocab.txt") == meta["vocab_sha256"]
@@ -704,17 +708,6 @@ else:
         "metadata": {
             "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
             "language_info": {"name": "python", "version": "3.10.0"},
-            "kaggle": {
-                "accelerator": "GPU",
-                "dataSources": [
-                    {"sourceType": "datasetVersion", "sourceId": "lhrm-gpu-bundle-l2-no-sa-replay"},
-                    {"sourceType": "datasetVersion", "sourceId": "aapd-dataset"},
-                    {"sourceType": "datasetVersion", "sourceId": "bert-base-uncased"},
-                ],
-                "dockerImageVersionId": 30699,
-                "isInternetEnabled": False,
-                "language": "python",
-            },
         },
         "cells": cells,
     }

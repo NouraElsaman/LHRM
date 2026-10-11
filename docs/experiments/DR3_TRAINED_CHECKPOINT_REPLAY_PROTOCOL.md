@@ -3,7 +3,7 @@
 **Document Reference:** `DR3_TRAINED_CHECKPOINT_REPLAY_PROTOCOL.md`  
 **Experiment ID:** `RUN_0_L2_NO_SA_REPLAY_20261011_B`  
 **Notebook:** [`notebooks/lhrm_dr3_trained_checkpoint_replay_kaggle.ipynb`](file:///D:/LHRM_Publication/notebooks/lhrm_dr3_trained_checkpoint_replay_kaggle.ipynb)  
-**Bundle:** `bundles/lhrm_gpu_bundle_l2_no_sa_replay_20261011_b.zip` (SHA-256: `356de6f1ae6308529686bb73b6224c8db8d90d05383cf687a9ecfbe1af940ab0`)  
+**Bundle:** `bundles/lhrm_gpu_bundle_l2_no_sa_replay_20261011_b.zip` (SHA-256: `b20a6d69a9701f276949d855bb01902c36e215f5b1421f7e5c727766afb66532`)  
 **Trained Diagnostic Script:** [`scripts/probe_csam_trained_checkpoint.py`](file:///D:/LHRM_Publication/scripts/probe_csam_trained_checkpoint.py)  
 **Test Suite:** [`tests/test_trained_checkpoint_replay.py`](file:///D:/LHRM_Publication/tests/test_trained_checkpoint_replay.py)  
 **Date:** 2026-10-11  
@@ -40,12 +40,12 @@ We authorize **ONE controlled replay** (`RUN_0_L2_NO_SA_REPLAY_20261011_B`) on K
 
 | Parameter | Approved Value |
 | :--- | :--- |
-| **Dataset Splits** | AAPD Train (53,840), Dev (1,000) |
+| **Dataset Splits** | Authenticated original AAPD Train (53,840), Dev (1,000) from raw CSVs |
 | **Test Split** | **Strictly Quarantined (NEVER ACCESSED)** |
 | **Frozen Dev Sample** | Original 200 IDs (`experiments/RUN_0/run0_val_sample_ids.json`) |
 | **Candidates** | `L2`, `L2_NO_SA` |
 | **Seed** | `42` |
-| **Pretrained Model** | Official `google-bert/bert-base-uncased` |
+| **Pretrained Model** | Official `google-bert/bert-base-uncased` @ pinned revision `86b5e0934494bd15c9632b12f734a8a67f723594` |
 | **Optimizer** | AdamW ($\text{lr}=3\times 10^{-5}$) |
 | **Loss** | Focal Loss ($\alpha=0.25, \gamma=2.0$) |
 | **Steps** | 300 optimizer steps per candidate |

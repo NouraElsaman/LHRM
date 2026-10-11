@@ -306,16 +306,15 @@ def run_trained_checkpoint_diagnostic_suite(
     # Load tokenizer and label definitions
     tokenizer = BertTokenizer.from_pretrained(str(bert_p), local_files_only=True)
     from src.lhrm_baseline.labels import build_all_label_texts
+    from src.lhrm_baseline.data import tokenize_labels
     label_texts = build_all_label_texts(canonical_labels, str(defs_file), dataset="aapd")
 
-    # Tokenize inputs
+    # Tokenize inputs - labels use identical tokenize_labels(..., max_len=64) as run_baseline.py::cmd_run0
     doc_enc = tokenizer(batch_texts, max_length=512, padding="max_length", truncation=True, return_tensors="pt")
-    label_enc = tokenizer(label_texts, max_length=128, padding="max_length", truncation=True, return_tensors="pt")
+    lbl_ids, lbl_mask = tokenize_labels(label_texts, tokenizer, max_len=64, device=torch.device("cpu"))
 
     doc_ids = doc_enc["input_ids"]
     doc_mask = doc_enc["attention_mask"]
-    lbl_ids = label_enc["input_ids"]
-    lbl_mask = label_enc["attention_mask"]
 
     candidates = ["L2", "L2_NO_SA"]
     probe_results = {}
