@@ -4,22 +4,27 @@ scripts/gen_kaggle_notebook_dr4_decomposition.py
 
 Generates notebooks/lhrm_dr4_trained_decomposition_kaggle.ipynb —
 Dedicated, reproducible Kaggle GPU notebook for DR4 Post-Training Logit Decomposition:
-1. Verifies and loads authentic trained checkpoints:
+1. Supports BOTH:
+   - Exact original ZIP bundle with SHA-256 verification.
+   - Kaggle auto-extracted directory with pinned BUNDLE_MANIFEST.json SHA-256 and verification of all files.
+2. Verifies and loads authentic trained checkpoints:
    - L2_STEP300_MODEL_ONLY.pt
    - L2_A5B_STEP300_MODEL_ONLY.pt
-2. Acquired official BERT revision 86b5e0934494bd15c9632b12f734a8a67f723594.
-3. Stages authentic AAPD Dev data (Test strictly quarantined) and frozen 200 Dev IDs.
-4. Performs exact algebraic logit decomposition on real trained representations (h_T, h_L):
+3. Acquired official BERT revision 86b5e0934494bd15c9632b12f734a8a67f723594.
+4. Stages authentic AAPD Dev data (Test strictly quarantined) and frozen 200 Dev IDs.
+5. Performs exact algebraic logit decomposition on real trained representations (h_T, h_L):
    - doc_term = alpha * (W . h_L)
    - sa_term  = W . (A @ h_L)
    - logits   = doc_term + sa_term + bias
-5. Verifies numerical reconstruction (< 1e-5) and exact agreement with val_sample_predictions.
-6. Computes all required metrics, duplicate target label analysis, and exports:
-   - DR4_POSTTRAIN_DECOMPOSITION_RESULTS.json
-   - DR4_POSTTRAIN_PER_LABEL_METRICS.csv
-   - DR4_POSTTRAIN_DECOMPOSITION_REPORT.md
-   - DR4_POSTTRAIN_DECOMPOSITION_EVIDENCE.zip
-   - DR4_POSTTRAIN_SHA256SUMS.txt
+6. Verifies:
+   - Checkpoint step = 300 and variant identity.
+   - Strict model-state loading.
+   - Independent model forward-pass logits agree with decomposed logits (<= 1e-5).
+   - Numerical reconstruction error <= 1e-5.
+   - Authentic saved predictions agree with model scores (<= 1e-5) across all 200 x 54 scores.
+   - Exact reproduction of screening metrics (P@1 hits, V4 passing count, ranking diversity).
+7. Computes weight geometry (off-diagonal vs diagonal self-similarity) and duplicate-target analysis.
+8. Exports complete diagnostic evidence package and SHA-256 checksums.
 """
 from __future__ import annotations
 
@@ -32,6 +37,7 @@ import sys
 import time
 import zipfile
 from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -59,7 +65,7 @@ def cell(source_str: str, cell_type: str = "code") -> Dict[str, Any]:
     }
 
 
-def build_notebook(bundle_name: str, bundle_sha256: str) -> Dict[str, Any]:
+def build_notebook(bundle_name: str, bundle_sha256: str, manifest_sha256: str) -> Dict[str, Any]:
     cells = []
 
     # ── Cell 0: Markdown Protocol & Scope ─────────────────────────────────────
@@ -77,13 +83,17 @@ This session performs exact algebraic logit decomposition on real representation
    - $\\text{{doc\\_term}}[b, i] = \\alpha[b, i] \\cdot (W[i] \\cdot h_L[i])$ (document-dependent)
    - $\\text{{sa\\_term}}[b, i] = W[i] \\cdot SA[i]$ (static label self-attention)
    - $\\text{{logits}}[b, i] = \\text{{doc\\_term}}[b, i] + \\text{{sa\\_term}}[b, i] + \\text{{bias}}$
-2. **Reconstruction Verification:** Verify $\\max |\\text{{logits}} - (\\text{{doc\\_term}} + \\text{{sa\\_term}} + \\text{{bias}})| < 10^{{-5}}$ and verify agreement with original saved predictions.
+2. **Reconstruction & Forward Pass Verification:**
+   - Verify $\\max |\\text{{logits}} - (\\text{{doc\\_term}} + \\text{{sa\\_term}} + \\text{{bias}})| \\le 10^{{-5}}$.
+   - Verify exact agreement between decomposed logits and independent forward pass logits ($\\le 10^{{-5}}$).
+   - Verify exact agreement between model probabilities and authentic saved predictions from DR4 screening ($\\le 10^{{-5}}$).
 3. **Signal Attenuation Audit:** Measure SA-to-document magnitude ratio, cross-document variance of document terms, and attention entropy.
 4. **Duplicate Target Labels Analysis:** Compare `cmp-lg` (idx 0) vs `cond-mat.dis-nn` (idx 1) static vs document contributions.
-5. **Strict Quarantine:** Test split is strictly quarantined (never read or evaluated). No training or optimizer updates occur.
+5. **Strict Scope:** Test split is strictly quarantined (never read or evaluated). Zero optimizer steps or gradient updates occur.
 
 **Bundle Name:** `{bundle_name}`  
-**Bundle SHA-256:** `{bundle_sha256}`
+**Bundle SHA-256:** `{bundle_sha256}`  
+**Manifest SHA-256:** `{manifest_sha256}`
 """, cell_type="markdown"))
 
     # ── Cell 1: Environment Check & Official BERT Setup ───────────────────────
@@ -184,6 +194,7 @@ WORK = Path("/kaggle/working")
 INP = Path("/kaggle/input")
 BUNDLE_NAME = "@BUNDLE_NAME@"
 EXPECTED_BUNDLE_SHA = "@BUNDLE_SHA256@"
+EXPECTED_MANIFEST_SHA = "@MANIFEST_SHA256@"
 
 EXPECTED_CKPT_SHA = {
     "L2_STEP300_MODEL_ONLY.pt": "99a06f1e7ba5bd72f3d855b61672b95a52f97f83e8db519e09b7992f2ca48e49",
@@ -200,7 +211,7 @@ def sha_file(path):
             h.update(chunk)
     return h.hexdigest()
 
-# 1. Verify and Extract Bundle (Fail-Closed)
+# 1. Verify and Stage Bundle (Supporting BOTH exact ZIP and auto-extracted dataset)
 bundle_path = None
 for root, _, files in os.walk(INP):
     if BUNDLE_NAME in files:
@@ -209,16 +220,55 @@ for root, _, files in os.walk(INP):
             bundle_path = p
             break
 
-if bundle_path is None:
-    raise FileNotFoundError(f"FAIL-CLOSED: Exact bundle '{BUNDLE_NAME}' not found.")
+manifest_path = None
+for root, _, files in os.walk(INP):
+    if "BUNDLE_MANIFEST.json" in files:
+        p = Path(root) / "BUNDLE_MANIFEST.json"
+        if p.is_file():
+            manifest_path = p
+            break
 
-actual_bundle_sha = sha_file(bundle_path)
-assert actual_bundle_sha == EXPECTED_BUNDLE_SHA, f"Bundle SHA mismatch: {actual_bundle_sha} != {EXPECTED_BUNDLE_SHA}"
-print(f"Bundle VERIFIED: {bundle_path} (SHA: {actual_bundle_sha})")
+staged = False
+if bundle_path is not None:
+    actual_bundle_sha = sha_file(bundle_path)
+    if actual_bundle_sha == EXPECTED_BUNDLE_SHA:
+        print(f"Bundle ZIP VERIFIED: {bundle_path} (SHA: {actual_bundle_sha})", flush=True)
+        with zipfile.ZipFile(bundle_path, "r") as z:
+            z.extractall(WORK)
+        staged = True
+    else:
+        print(f"Notice: Found {bundle_path} but SHA mismatch: {actual_bundle_sha} != {EXPECTED_BUNDLE_SHA}", flush=True)
 
-with zipfile.ZipFile(bundle_path, "r") as z:
-    z.extractall(WORK)
-print("Bundle extracted to /kaggle/working.")
+if not staged and manifest_path is not None:
+    actual_manifest_sha = sha_file(manifest_path)
+    assert actual_manifest_sha == EXPECTED_MANIFEST_SHA, f"FAIL-CLOSED: BUNDLE_MANIFEST.json SHA mismatch: {actual_manifest_sha} != {EXPECTED_MANIFEST_SHA}"
+    print(f"Bundle manifest VERIFIED: {manifest_path} (SHA: {actual_manifest_sha})", flush=True)
+    manifest_dir = manifest_path.parent
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for rel_path, exp_file_sha in manifest["files"].items():
+        src_file = manifest_dir / rel_path
+        if not src_file.is_file():
+            raise FileNotFoundError(f"FAIL-CLOSED: Extracted bundle constituent file missing: {src_file}")
+        actual_file_sha = sha_file(src_file)
+        assert actual_file_sha == exp_file_sha, f"FAIL-CLOSED: File SHA mismatch for {rel_path}: {actual_file_sha} != {exp_file_sha}"
+        dest_file = WORK / rel_path
+        dest_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_file, dest_file)
+    print(f"All {len(manifest['files'])} constituent files verified and staged from extracted dataset.", flush=True)
+    staged = True
+
+if not staged:
+    raise FileNotFoundError(
+        f"FAIL-CLOSED: Neither exact bundle ZIP '{BUNDLE_NAME}' (SHA: {EXPECTED_BUNDLE_SHA}) "
+        f"nor verified extracted directory with BUNDLE_MANIFEST.json (SHA: {EXPECTED_MANIFEST_SHA}) found under /kaggle/input."
+    )
+
+# Verify reference predictions exist in working directory
+ref_l2_path = WORK / "reference_predictions" / "variant_L2" / "val_sample_predictions.json"
+ref_a5b_path = WORK / "reference_predictions" / "variant_L2_A5B" / "val_sample_predictions.json"
+assert ref_l2_path.is_file(), f"FAIL-CLOSED: Staged L2 reference predictions not found at {ref_l2_path}"
+assert ref_a5b_path.is_file(), f"FAIL-CLOSED: Staged L2_A5B reference predictions not found at {ref_a5b_path}"
+print("Reference predictions verified in working directory.", flush=True)
 
 # 2. Locate and Verify Trained Model Checkpoints
 found_ckpts = {}
@@ -232,7 +282,7 @@ for name, exp_sha in EXPECTED_CKPT_SHA.items():
     if name not in found_ckpts:
         raise FileNotFoundError(f"FAIL-CLOSED: Authentic checkpoint {name} matching SHA {exp_sha} not found in /kaggle/input.")
 
-print(f"Checkpoints VERIFIED: {list(found_ckpts.keys())}")
+print(f"Checkpoints VERIFIED: {list(found_ckpts.keys())}", flush=True)
 
 # 3. Locate and Stage AAPD Dev CSV Only (Test strictly quarantined)
 dev_source = None
@@ -295,15 +345,19 @@ assert len(frozen_ids) == 200
 eval_texts = [dev_texts[i] for i in frozen_ids]
 eval_labels = dev_labels[frozen_ids]
 print(f"Data GATES PASSED: 200 Dev documents staged, 54 labels verified (Test split strictly quarantined).", flush=True)
-""".replace("@BUNDLE_NAME@", bundle_name).replace("@BUNDLE_SHA256@", bundle_sha256)
+""".replace("@BUNDLE_NAME@", bundle_name).replace("@BUNDLE_SHA256@", bundle_sha256).replace("@MANIFEST_SHA256@", manifest_sha256)
     cells.append(cell(cell2_code))
 
     # ── Cell 3: Execute Decomposition Diagnostic ──────────────────────────────
     cell3_code = """\
 # Cell 3: Execute Full Algebraic Decomposition on Real Trained Representations
-import torch, gc
-from transformers import BertModel, BertTokenizer
+import os, sys, json, shutil, gc
+from pathlib import Path
+import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from transformers import BertModel, BertTokenizer
+
 from lhrm_baseline.data import MultiLabelDataset, collate_fn, tokenize_labels
 from lhrm_baseline.labels import build_all_label_texts
 from lhrm_baseline.model import LHRMModel, get_cls_embedding
@@ -313,6 +367,8 @@ from probe_dr4_trained_logit_decomposition import (
     decompose_l2_csam_logits,
     decompose_a5b_csam_logits,
     compute_decomposition_statistics,
+    compute_classifier_weight_analysis,
+    verify_saved_predictions,
     export_decomposition_deliverables,
 )
 
@@ -334,9 +390,12 @@ for row in eval_labels:
 
 # 1. Run for L2
 print("\\n--- Decomposing Variant L2 ---", flush=True)
+ckpt_l2 = torch.load(found_ckpts["L2_STEP300_MODEL_ONLY.pt"], map_location=device)
+assert ckpt_l2["step"] == 300, f"Expected step 300, got {ckpt_l2.get('step')}"
+assert ckpt_l2["variant"] == "L2", f"Expected variant L2, got {ckpt_l2.get('variant')}"
+
 bert_l2 = BertModel.from_pretrained(str(BERT_DIR), local_files_only=True).to(device)
 model_l2 = LHRMModel(bert_l2, num_labels=54, variant="L2").to(device)
-ckpt_l2 = torch.load(found_ckpts["L2_STEP300_MODEL_ONLY.pt"], map_location=device)
 model_l2.load_state_dict(ckpt_l2["model_state"], strict=True)
 model_l2.eval()
 
@@ -345,21 +404,41 @@ with torch.no_grad():
     label_out_l2 = model_l2.bert(label_ids, attention_mask=label_mask)
     h_L_l2 = get_cls_embedding(label_out_l2)  # [54, H]
 
-# Encode documents and decompose in batches
+# Encode documents and compute independent forward-pass logits in batches
 doc_h_T_l2 = []
+forward_logits_l2_list = []
 with torch.no_grad():
     for batch in eval_loader:
         b_ids = batch["input_ids"].to(device)
         b_mask = batch["attention_mask"].to(device)
         out = model_l2.bert(b_ids, attention_mask=b_mask)
         doc_h_T_l2.append(get_cls_embedding(out))
+        # Actual model forward pass
+        fwd_logits = model_l2(b_ids, b_mask, label_ids, label_mask)
+        forward_logits_l2_list.append(fwd_logits)
+
 h_T_l2 = torch.cat(doc_h_T_l2, dim=0)  # [200, H]
+forward_logits_l2 = torch.cat(forward_logits_l2_list, dim=0)  # [200, 54]
 
 w_l2 = model_l2.csam.W.weight.data
 b_l2 = model_l2.csam.W.bias.data
+
+# Decompose logits algebraically
 decomp_l2 = decompose_l2_csam_logits(h_T_l2, h_L_l2, w_l2, b_l2)
+
+# Verify agreement with actual forward pass logits (<= 1e-5)
+fwd_diff_l2 = (decomp_l2["logits"] - forward_logits_l2).abs().max().item()
+assert fwd_diff_l2 <= 1e-5, f"L2 forward pass vs decomposed logits diff: {fwd_diff_l2:.2e} > 1e-5"
+assert decomp_l2["max_recon_error"] <= 1e-5, f"L2 reconstruction error: {decomp_l2['max_recon_error']:.2e} > 1e-5"
+
+# Verify against authentic saved predictions from DR4 screening
+pred_check_l2 = verify_saved_predictions(decomp_l2["logits"], cols, ref_l2_path, true_labels_list, tol=1e-5)
+assert pred_check_l2["p_at_1_hits"] == 63, f"L2 P@1 mismatch: {pred_check_l2['p_at_1_hits']} != 63"
+assert pred_check_l2["v4_passing_count"] == 21, f"L2 V4 mismatch: {pred_check_l2['v4_passing_count']} != 21"
+assert pred_check_l2["distinct_top1_count"] == 1, f"L2 Top1 diversity mismatch: {pred_check_l2['distinct_top1_count']} != 1"
+
 l2_stats = compute_decomposition_statistics(decomp_l2, cols, true_labels_list)
-print(f"L2 Decomposition PASS: Recon error = {decomp_l2['max_recon_error']:.2e}, SA/Doc ratio = {l2_stats['sa_to_doc_ratio']:.2f}x")
+print(f"L2 PASS: Recon diff = {decomp_l2['max_recon_error']:.2e}, Fwd diff = {fwd_diff_l2:.2e}, Pred max diff = {pred_check_l2['max_score_diff']:.2e}, SA/Doc ratio = {l2_stats['sa_to_doc_ratio']:.2f}x", flush=True)
 
 del model_l2, bert_l2, h_T_l2, h_L_l2
 torch.cuda.empty_cache()
@@ -367,9 +446,12 @@ gc.collect()
 
 # 2. Run for L2_A5B
 print("\\n--- Decomposing Variant L2_A5B ---", flush=True)
+ckpt_a5b = torch.load(found_ckpts["L2_A5B_STEP300_MODEL_ONLY.pt"], map_location=device)
+assert ckpt_a5b["step"] == 300, f"Expected step 300, got {ckpt_a5b.get('step')}"
+assert ckpt_a5b["variant"] == "L2_A5B", f"Expected variant L2_A5B, got {ckpt_a5b.get('variant')}"
+
 bert_a5b = BertModel.from_pretrained(str(BERT_DIR), local_files_only=True).to(device)
 model_a5b = LHRMModel(bert_a5b, num_labels=54, variant="L2_A5B").to(device)
-ckpt_a5b = torch.load(found_ckpts["L2_A5B_STEP300_MODEL_ONLY.pt"], map_location=device)
 model_a5b.load_state_dict(ckpt_a5b["model_state"], strict=True)
 model_a5b.eval()
 
@@ -378,30 +460,48 @@ with torch.no_grad():
     label_out_a5b = model_a5b.bert(label_ids, attention_mask=label_mask)
     h_L_a5b = get_cls_embedding(label_out_a5b)  # [54, H]
 
-# Encode documents and decompose in batches
+# Encode documents and compute independent forward-pass logits in batches
 doc_h_T_a5b = []
+forward_logits_a5b_list = []
 with torch.no_grad():
     for batch in eval_loader:
         b_ids = batch["input_ids"].to(device)
         b_mask = batch["attention_mask"].to(device)
         out = model_a5b.bert(b_ids, attention_mask=b_mask)
         doc_h_T_a5b.append(get_cls_embedding(out))
+        # Actual model forward pass
+        fwd_logits = model_a5b(b_ids, b_mask, label_ids, label_mask)
+        forward_logits_a5b_list.append(fwd_logits)
+
 h_T_a5b = torch.cat(doc_h_T_a5b, dim=0)  # [200, H]
+forward_logits_a5b = torch.cat(forward_logits_a5b_list, dim=0)  # [200, 54]
 
 W_a5b = model_a5b.csam.W.data
 b_a5b = model_a5b.csam.bias.data
-decomp_a5b = decompose_a5b_csam_logits(h_T_a5b, h_L_a5b, W_a5b, b_a5b)
-a5b_stats = compute_decomposition_statistics(decomp_a5b, cols, true_labels_list)
-print(f"L2_A5B Decomposition PASS: Recon error = {decomp_a5b['max_recon_error']:.2e}, SA/Doc ratio = {a5b_stats['sa_to_doc_ratio']:.2f}x")
 
-# Weight analysis
-cos_sim_matrix = F.cosine_similarity(W_a5b.unsqueeze(1), W_a5b.unsqueeze(0), dim=2)
-weight_analysis = {
-    "a5b_w_norm_mean": float(torch.norm(W_a5b, dim=1).mean().item()),
-    "a5b_w_norm_std": float(torch.norm(W_a5b, dim=1).std().item()),
-    "a5b_mean_cosine_similarity": float(cos_sim_matrix.mean().item()),
-    "a5b_min_cosine_similarity": float(cos_sim_matrix.min().item()),
-    "duplicate_targets_cosine_similarity": float(cos_sim_matrix[0, 1].item()),
+# Decompose logits algebraically
+decomp_a5b = decompose_a5b_csam_logits(h_T_a5b, h_L_a5b, W_a5b, b_a5b)
+
+# Verify agreement with actual forward pass logits (<= 1e-5)
+fwd_diff_a5b = (decomp_a5b["logits"] - forward_logits_a5b).abs().max().item()
+assert fwd_diff_a5b <= 1e-5, f"L2_A5B forward pass vs decomposed logits diff: {fwd_diff_a5b:.2e} > 1e-5"
+assert decomp_a5b["max_recon_error"] <= 1e-5, f"L2_A5B reconstruction error: {decomp_a5b['max_recon_error']:.2e} > 1e-5"
+
+# Verify against authentic saved predictions from DR4 screening
+pred_check_a5b = verify_saved_predictions(decomp_a5b["logits"], cols, ref_a5b_path, true_labels_list, tol=1e-5)
+assert pred_check_a5b["p_at_1_hits"] == 63, f"L2_A5B P@1 mismatch: {pred_check_a5b['p_at_1_hits']} != 63"
+assert pred_check_a5b["v4_passing_count"] == 3, f"L2_A5B V4 mismatch: {pred_check_a5b['v4_passing_count']} != 3"
+assert pred_check_a5b["distinct_top1_count"] == 2, f"L2_A5B Top1 diversity mismatch: {pred_check_a5b['distinct_top1_count']} != 2"
+
+a5b_stats = compute_decomposition_statistics(decomp_a5b, cols, true_labels_list)
+print(f"L2_A5B PASS: Recon diff = {decomp_a5b['max_recon_error']:.2e}, Fwd diff = {fwd_diff_a5b:.2e}, Pred max diff = {pred_check_a5b['max_score_diff']:.2e}, SA/Doc ratio = {a5b_stats['sa_to_doc_ratio']:.2f}x", flush=True)
+
+# Weight geometry analysis (strictly separating diagonal self-similarity from off-diagonal)
+weight_analysis = compute_classifier_weight_analysis(W_a5b, w_l2=w_l2)
+pred_verification = {
+    "L2": pred_check_l2,
+    "L2_A5B": pred_check_a5b,
+    "max_score_diff": max(pred_check_l2["max_score_diff"], pred_check_a5b["max_score_diff"]),
 }
 
 del model_a5b, bert_a5b, h_T_a5b, h_L_a5b
@@ -410,9 +510,9 @@ gc.collect()
 
 # 3. Export all deliverables
 out_dir = WORK / "DR4_POSTTRAIN_DECOMPOSITION_OUTPUT"
-paths = export_decomposition_deliverables(l2_stats, a5b_stats, out_dir, weight_analysis)
+paths = export_decomposition_deliverables(l2_stats, a5b_stats, out_dir, weight_analysis, pred_verification)
 
-# Also copy evidence ZIP to /kaggle/working/
+# Also copy evidence files to /kaggle/working/
 shutil.copy2(paths["evidence_zip"], WORK / Path(paths["evidence_zip"]).name)
 shutil.copy2(paths["checksums"], WORK / Path(paths["checksums"]).name)
 shutil.copy2(paths["report_md"], WORK / Path(paths["report_md"]).name)
@@ -443,14 +543,19 @@ print(Path(paths["report_md"]).read_text(encoding="utf-8"))
     return nb
 
 
-def build_decomposition_bundle(out_zip: Path) -> str:
-    """Builds lightweight bundle containing code and configs for Kaggle diagnostic execution."""
+def build_decomposition_bundle(out_zip: Path) -> Tuple[str, str]:
+    """
+    Builds lightweight bundle containing code, configs, and authentic reference predictions.
+    Returns (bundle_sha256, manifest_sha256).
+    """
     to_include = [
         (ROOT / "run_baseline.py", "run_baseline.py"),
         (ROOT / "scripts" / "probe_dr4_trained_logit_decomposition.py", "scripts/probe_dr4_trained_logit_decomposition.py"),
         (ROOT / "Label_Definition" / "arxiv_labels_definitions.json", "Label_Definition/arxiv_labels_definitions.json"),
         (ROOT / "experiments" / "RUN_0" / "run0_val_sample_ids.json", "experiments/RUN_0/run0_val_sample_ids.json"),
         (ROOT / "docs" / "experiments" / "DR4_A5B_PREREGISTRATION.md", "docs/experiments/DR4_A5B_PREREGISTRATION.md"),
+        (ROOT / "reference_predictions" / "variant_L2" / "val_sample_predictions.json", "reference_predictions/variant_L2/val_sample_predictions.json"),
+        (ROOT / "reference_predictions" / "variant_L2_A5B" / "val_sample_predictions.json", "reference_predictions/variant_L2_A5B/val_sample_predictions.json"),
     ]
 
     # Include src/lhrm_baseline
@@ -466,21 +571,25 @@ def build_decomposition_bundle(out_zip: Path) -> str:
     manifest = {
         "bundle_name": out_zip.name,
         "diagnostic_id": DIAG_ID,
-        "date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "date": "2026-10-12T00:00:00Z",
         "files": {},
     }
     for fp, rel in to_include:
         if fp.is_file():
             manifest["files"][rel] = sha256_file(fp)
 
+    manifest_bytes = json.dumps(manifest, indent=2).encode("utf-8")
+    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+
     out_zip.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(out_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         for fp, rel in to_include:
             if fp.is_file():
                 zf.write(fp, arcname=rel)
-        zf.writestr("BUNDLE_MANIFEST.json", json.dumps(manifest, indent=2))
+        zf.writestr("BUNDLE_MANIFEST.json", manifest_bytes)
 
-    return sha256_file(out_zip)
+    bundle_sha256 = sha256_file(out_zip)
+    return bundle_sha256, manifest_sha256
 
 
 def main():
@@ -490,13 +599,14 @@ def main():
 
     bundle_path = ROOT / "bundles" / args.bundle_name
     print(f"Building decomposition bundle: {bundle_path}...")
-    bundle_sha = build_decomposition_bundle(bundle_path)
+    bundle_sha, manifest_sha = build_decomposition_bundle(bundle_path)
     bundle_size_kb = bundle_path.stat().st_size / 1024.0
     print(f"Bundle built: {bundle_path}")
-    print(f"  SHA-256: {bundle_sha}")
-    print(f"  Size:    {bundle_size_kb:.1f} KB")
+    print(f"  Bundle SHA-256:   {bundle_sha}")
+    print(f"  Manifest SHA-256: {manifest_sha}")
+    print(f"  Size:             {bundle_size_kb:.1f} KB")
 
-    nb = build_notebook(args.bundle_name, bundle_sha)
+    nb = build_notebook(args.bundle_name, bundle_sha, manifest_sha)
     OUT_NB.parent.mkdir(parents=True, exist_ok=True)
     with open(OUT_NB, "w", encoding="utf-8") as f:
         json.dump(nb, f, indent=1, ensure_ascii=False)

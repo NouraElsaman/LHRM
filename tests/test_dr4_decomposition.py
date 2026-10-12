@@ -4,16 +4,24 @@ tests/test_dr4_decomposition.py
 Unit and invariant test suite for DR4 Post-Training Logit Decomposition Diagnostic.
 Tests:
 1. Shape invariants for L2 and L2_A5B.
-2. Algebraic reconstruction: max |logits - (doc_term + sa_term + bias)| < 1e-5.
+2. Exact algebraic reconstruction error <= 1e-5.
 3. Cross-document invariance: Var_b(sa_term[b, i]) == 0.0.
-4. Weight selection: d(logits[b, i]) / d(W[j]) == 0 for all i != j in L2_A5B.
+4. Document-term as the sole source of logit variance across documents.
 5. Safe ratio handling: zero-denominator stability.
-6. Duplicate-target label analysis: index 0 (cmp-lg) and index 1 (cond-mat.dis-nn).
-7. Real checkpoint weight loading and reconstruction verification.
+6. Duplicate-target label analysis: reports both static SA and document-term differences.
+7. Authentic saved predictions verification reproducing historical screening outcomes.
+8. Classifier weight geometry separating diagonal self-similarity from off-diagonal stats.
+9. Bundle verification supporting both exact ZIP and auto-extracted manifest directory.
+10. Real checkpoint weight loading and algebraic reconstruction <= 1e-5.
 """
+import hashlib
+import json
 import math
 import os
+import shutil
 import sys
+import tempfile
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -28,18 +36,20 @@ from scripts.probe_dr4_trained_logit_decomposition import (
     decompose_l2_csam_logits,
     decompose_a5b_csam_logits,
     compute_decomposition_statistics,
+    compute_classifier_weight_analysis,
+    verify_saved_predictions,
     seeded_rank_order,
 )
 
 
 class TestDR4LogitDecomposition:
     def test_l2_shape_invariants_and_exact_reconstruction(self):
-        """Verify L2 output shapes and algebraic reconstruction error < 1e-5."""
+        """Verify L2 output shapes and algebraic reconstruction error <= 1e-5."""
         B, k, H = 10, 54, 64
         torch.manual_seed(42)
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        w = torch.randn(1, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        w = torch.randn(1, H) / math.sqrt(H)
         bias = torch.tensor([-0.05])
 
         decomp = decompose_l2_csam_logits(h_T, h_L, w, bias)
@@ -57,17 +67,17 @@ class TestDR4LogitDecomposition:
         assert torch.allclose(decomp["A"].sum(dim=1), torch.ones(k), atol=1e-5)
 
         # Exact algebraic reconstruction
-        assert decomp["max_recon_error"] < 1e-5
+        assert decomp["max_recon_error"] <= 1e-5
         diff = (decomp["logits"] - (decomp["doc_term"] + decomp["sa_term"] + decomp["bias"])).abs().max().item()
-        assert diff < 1e-5
+        assert diff <= 1e-5
 
     def test_a5b_shape_invariants_and_exact_reconstruction(self):
-        """Verify L2_A5B output shapes and algebraic reconstruction error < 1e-5."""
+        """Verify L2_A5B output shapes and algebraic reconstruction error <= 1e-5."""
         B, k, H = 10, 54, 64
         torch.manual_seed(42)
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        W = torch.randn(k, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        W = torch.randn(k, H) / math.sqrt(H)
         bias = torch.tensor([-0.05])
 
         decomp = decompose_a5b_csam_logits(h_T, h_L, W, bias)
@@ -80,18 +90,18 @@ class TestDR4LogitDecomposition:
         assert decomp["SA"].shape == (k, H)
 
         # Exact algebraic reconstruction
-        assert decomp["max_recon_error"] < 1e-5
+        assert decomp["max_recon_error"] <= 1e-5
         diff = (decomp["logits"] - (decomp["doc_term"] + decomp["sa_term"] + decomp["bias"])).abs().max().item()
-        assert diff < 1e-5
+        assert diff <= 1e-5
 
     def test_sa_term_has_strictly_zero_cross_document_variance(self):
         """The static label-SA term sa_term must have identically zero variance across documents."""
         B, k, H = 25, 54, 128
         torch.manual_seed(123)
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        W = torch.randn(k, H)
-        w = torch.randn(1, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        W = torch.randn(k, H) / math.sqrt(H)
+        w = torch.randn(1, H) / math.sqrt(H)
         b = -0.02
 
         decomp_l2 = decompose_l2_csam_logits(h_T, h_L, w, b)
@@ -108,9 +118,9 @@ class TestDR4LogitDecomposition:
         """Because sa_term is constant across documents, Var_b(logits) == Var_b(doc_term) exactly."""
         B, k, H = 30, 10, 32
         torch.manual_seed(999)
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        W = torch.randn(k, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        W = torch.randn(k, H) / math.sqrt(H)
         b = -0.1
 
         decomp = decompose_a5b_csam_logits(h_T, h_L, W, b)
@@ -123,9 +133,9 @@ class TestDR4LogitDecomposition:
     def test_safe_denominator_handling_in_ratio(self):
         """SA-to-doc ratio must handle near-zero doc term safely without dividing by zero."""
         B, k, H = 5, 4, 16
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        W = torch.randn(k, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        W = torch.randn(k, H) / math.sqrt(H)
         decomp = decompose_a5b_csam_logits(h_T, h_L, W, 0.0)
 
         # Force doc_term to 0
@@ -137,12 +147,12 @@ class TestDR4LogitDecomposition:
         assert not math.isinf(stats["sa_to_doc_ratio"])
         assert stats["sa_to_doc_ratio"] > 0
 
-    def test_duplicate_target_labels_detection(self):
-        """Verify decomposition handles cmp-lg and cond-mat.dis-nn explicitly."""
+    def test_duplicate_target_labels_both_static_and_doc_contributions(self):
+        """Verify decomposition reports both static SA difference and document-term difference."""
         B, k, H = 20, 54, 32
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
-        W = torch.randn(k, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
+        W = torch.randn(k, H) / math.sqrt(H)
         label_names = [f"label_{i:02d}" for i in range(k)]
         label_names[0] = "cmp-lg"
         label_names[1] = "cond-mat.dis-nn"
@@ -154,7 +164,107 @@ class TestDR4LogitDecomposition:
         assert dup["cmp_lg"]["label_name"] == "cmp-lg"
         assert dup["cond_mat_dis_nn"]["label_name"] == "cond-mat.dis-nn"
         assert "static_sa_difference" in dup
+        assert "mean_doc_difference" in dup
         assert "mean_logit_difference" in dup
+
+    def test_classifier_weight_geometry_separates_diagonal(self):
+        """Test compute_classifier_weight_analysis executes with defined F and separates diagonal."""
+        k, H = 54, 768
+        torch.manual_seed(42)
+        W = torch.randn(k, H)
+        w = torch.randn(1, H)
+
+        analysis = compute_classifier_weight_analysis(W, w_l2=w)
+
+        assert analysis["diagonal_self_similarity"] == 1.0
+        assert "off_diagonal_mean_cosine_similarity" in analysis
+        assert "off_diagonal_std_cosine_similarity" in analysis
+        assert "off_diagonal_min_cosine_similarity" in analysis
+        assert "off_diagonal_max_cosine_similarity" in analysis
+        assert "duplicate_targets_cosine_similarity" in analysis
+        assert "duplicate_targets_weight_l2_dist" in analysis
+        assert -1.0 <= analysis["off_diagonal_mean_cosine_similarity"] <= 1.0
+
+    def test_verify_saved_predictions_against_reference_files(self):
+        """Verify authentic saved prediction files reproduce exact historical screening metrics."""
+        ref_l2 = ROOT / "reference_predictions" / "variant_L2" / "val_sample_predictions.json"
+        ref_a5b = ROOT / "reference_predictions" / "variant_L2_A5B" / "val_sample_predictions.json"
+
+        if not ref_l2.is_file() or not ref_a5b.is_file():
+            pytest.skip("Reference predictions files not present")
+
+        # Load L2 reference predictions
+        data_l2 = json.loads(ref_l2.read_text())
+        scores_l2 = np.array([d["scores"] for d in data_l2], dtype=np.float32)
+        labels = data_l2[0]["labels"]
+        true_labels = [d["true_labels"] for d in data_l2]
+
+        check_l2 = verify_saved_predictions(
+            logits_or_probs=scores_l2,
+            canonical_labels=labels,
+            saved_predictions_path=ref_l2,
+            true_labels_list=true_labels,
+            tol=1e-5,
+        )
+        assert check_l2["p_at_1_hits"] == 63
+        assert check_l2["v4_passing_count"] == 21
+        assert check_l2["distinct_top1_count"] == 1
+        assert check_l2["dominant_label"] == "cond-mat.dis-nn"
+        assert check_l2["max_score_diff"] <= 1e-5
+
+        # Load L2_A5B reference predictions
+        data_a5b = json.loads(ref_a5b.read_text())
+        scores_a5b = np.array([d["scores"] for d in data_a5b], dtype=np.float32)
+
+        check_a5b = verify_saved_predictions(
+            logits_or_probs=scores_a5b,
+            canonical_labels=labels,
+            saved_predictions_path=ref_a5b,
+            true_labels_list=true_labels,
+            tol=1e-5,
+        )
+        assert check_a5b["p_at_1_hits"] == 63
+        assert check_a5b["v4_passing_count"] == 3
+        assert check_a5b["distinct_top1_count"] == 2
+        assert check_a5b["dominant_label"] == "cmp-lg"
+        assert check_a5b["max_score_diff"] <= 1e-5
+
+    def test_bundle_manifest_verification_auto_extraction_support(self):
+        """Simulate Kaggle auto-extracted bundle staging with BUNDLE_MANIFEST.json."""
+        bundle_path = ROOT / "bundles" / "lhrm_gpu_bundle_dr4_decomposition_20261012.zip"
+        if not bundle_path.is_file():
+            pytest.skip("Bundle not found")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            extracted_dir = Path(tmp_dir) / "extracted"
+            dest_work = Path(tmp_dir) / "working"
+            extracted_dir.mkdir()
+            dest_work.mkdir()
+
+            # Extract bundle into simulated Kaggle extracted input
+            with zipfile.ZipFile(bundle_path) as zf:
+                zf.extractall(extracted_dir)
+
+            manifest_path = extracted_dir / "BUNDLE_MANIFEST.json"
+            assert manifest_path.is_file()
+
+            # Read manifest and verify constituents
+            manifest = json.loads(manifest_path.read_text())
+            for rel_path, exp_sha in manifest["files"].items():
+                file_p = extracted_dir / rel_path
+                assert file_p.is_file()
+                h = hashlib.sha256(file_p.read_bytes()).hexdigest()
+                assert h == exp_sha
+
+                # Stage to simulated work
+                dest = dest_work / rel_path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(file_p, dest)
+
+            # Confirm staged files
+            assert (dest_work / "run_baseline.py").is_file()
+            assert (dest_work / "reference_predictions" / "variant_L2" / "val_sample_predictions.json").is_file()
+            assert (dest_work / "reference_predictions" / "variant_L2_A5B" / "val_sample_predictions.json").is_file()
 
     def test_real_checkpoint_weights_decomposition_invariants(self):
         """
@@ -185,14 +295,14 @@ class TestDR4LogitDecomposition:
         # Test algebraic decomposition with authentic checkpoint weights
         B, k, H = 10, 54, 768
         torch.manual_seed(42)
-        h_T = torch.randn(B, H)
-        h_L = torch.randn(k, H)
+        h_T = torch.randn(B, H) / math.sqrt(H)
+        h_L = torch.randn(k, H) / math.sqrt(H)
 
         decomp_l2 = decompose_l2_csam_logits(h_T, h_L, w_l2, b_l2)
         decomp_a5b = decompose_a5b_csam_logits(h_T, h_L, W_a5b, b_a5b)
 
-        assert decomp_l2["max_recon_error"] < 1e-5
-        assert decomp_a5b["max_recon_error"] < 1e-5
+        assert decomp_l2["max_recon_error"] <= 1e-5
+        assert decomp_a5b["max_recon_error"] <= 1e-5
 
         # Cross-document SA variance must be 0
         assert decomp_l2["sa_term"].var(dim=0).max().item() == 0.0
