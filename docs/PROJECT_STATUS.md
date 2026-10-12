@@ -46,10 +46,25 @@
   - The 54 unshared weight vectors of $W$ remained highly collinear (mean off-diagonal cosine similarity $0.9985 \pm 0.0022$).
   - Full postmortem documented in [`docs/experiments/DR4_FINAL_POSTMORTEM.md`](experiments/DR4_FINAL_POSTMORTEM.md).
 
-## Prepared DR4 Frozen-Checkpoint Label-SA Counterfactual (`DR4_FROZEN_SA_CF_20261012_A`)
-- **Status**: Preregistered and prepared; GPU execution NOT started.
-- **Intervention**: Frozen-logit counterfactual evaluating $\text{counterfactual\_logits}[b, i] = \text{doc\_term}[b, i] + b$ against $\text{original\_logits}[b, i] = \text{doc\_term}[b, i] + \text{sa\_term}[i] + b$.
-- **Hypothesis**: Tests immediate ranking sensitivity of frozen models to static label-SA offsets without retraining. Preregistration in [`docs/experiments/DR4_FROZEN_SA_COUNTERFACTUAL_PROTOCOL.md`](experiments/DR4_FROZEN_SA_COUNTERFACTUAL_PROTOCOL.md).
+## Completed DR4 Frozen-Checkpoint Label-SA Counterfactual (`DR4_FROZEN_SA_CF_20261012_A`)
+- **Status**: Executed on Kaggle GPU, authentic evidence verified (`DR4_FROZEN_SA_CF_EVIDENCE.zip`, SHA-256: `a32eab0a33a39bb079259e175b61dd442d33386cb8412f59f69cda93bd92a610`), and finalized.
+- **Intervention**: Frozen-model counterfactual removing static label self-attention offsets at inference time: $\text{counterfactual\_logits}[b, i] = \text{original\_logits}[b, i] - \text{sa\_term}[i]$.
+- **Results**:
+  - Top-1 correct count strictly unchanged: exactly 63/200 (31.50%) for both L2 and L2_A5B (0 net improvement over frequency prior 63/200).
+  - V4 variance invariant under constant shift ($\Delta \sigma \le 4.28 \times 10^{-8}$): L2 remains 21/54; L2_A5B remains 3/54.
+  - Distinct Top-1 labels: L2 shifted from 1 (`cond-mat.dis-nn`: 200) to 2 (`cond-mat.dis-nn`: 199, `cs.se`: 1); L2_A5B shifted from 2 (`cmp-lg`: 199, `cond-mat.dis-nn`: 1) to 1 (`cond-mat.dis-nn`: 200). Note `cmp-lg` and `cond-mat.dis-nn` have identical ground truth columns.
+  - Mean counterfactual probability margin between Top-1 and Top-2 is $3.42 \times 10^{-6}$, indicating extreme numerical proximity.
+  - Refutes hypothesis that static label-SA offsets were the exclusive cause of ranking failure. Document-dependent terms themselves fail to generate useful label discrimination.
+  - Full report in [`docs/experiments/DR4_FROZEN_SA_CF_FINAL_ANALYSIS.md`](experiments/DR4_FROZEN_SA_CF_FINAL_ANALYSIS.md).
+
+## Completed Forensic Audit & Root-Cause Matrix
+- **Status**: Comprehensive audit of CSAM signal paths, gradient flow, and loss formulation documented in [`docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`](experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md).
+- **Key Findings**:
+  - Identifies three compounding failure mechanisms in literal CSAM (L/L2):
+    1. *Structural Information Bottleneck*: Literal CSAM (Eqs. 7–8) drops document representation $h_T$, routing document signal purely through attention weights $\alpha_i$ (unlike author's reference repo which concatenates $[h_T, \text{agg}]$).
+    2. *Gradient Starvation*: Dilute cross-attention over 54 labels combined with $1/\sqrt{H}$ scaling attenuates backpropagated gradients to document BERT by $\approx 1496\times$.
+    3. *Loss Gradient Imbalance*: Focal loss with $\alpha=0.25$ downweights positives $3\times$ relative to negatives, resulting in $64.5\times$ greater negative gradient mass under AAPD sparsity ($95.5\%$ zeros), causing early collapse to a document-invariant negative frequency-prior state.
+- **Recovery Decision**: Preregistered Category 2 frozen-backbone diagnostic probe followed by Category 3 recovery screen (Variant R + BCE) documented in [`docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`](experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md).
 
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.

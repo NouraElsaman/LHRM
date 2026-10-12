@@ -99,6 +99,21 @@ Executed 300 optimizer steps comparing `L2` (shared classifier) versus `L2_A5B` 
 - **Causality Limit**: Unsharing the classifier head alone did not resolve ranking collapse under the 300-step screening protocol, but this observational finding does not establish an inductive proof regarding all training regimes or initializations.
 - **Standard Baseline Reference**: The standard BERT multi-label control baseline (DR2 / Variant B, Dev P@1 = 0.8820) remains strictly distinct from CSAM reproduction claims.
 
+### Completed DR4 Frozen Label-SA Counterfactual (`DR4_FROZEN_SA_CF_20261012_A`)
+Evaluated inference-only removal of static label self-attention offsets ($\text{original\_logits} - \text{sa\_term}$) on trained step-300 checkpoints.
+- **Outcome**: 0 recovered hits. Both models remained at 63/200 Top-1 hits (31.50%), matching the frequency prior.
+- V4 cross-document logit standard deviation was strictly invariant under the constant offset subtraction ($\Delta \sigma \le 4.28 \times 10^{-8}$).
+- Refuted the hypothesis that static label-SA offsets were the exclusive cause of ranking collapse. Document-dependent terms themselves fail to generate useful discrimination.
+- Full analysis documented in [`docs/experiments/DR4_FROZEN_SA_CF_FINAL_ANALYSIS.md`](docs/experiments/DR4_FROZEN_SA_CF_FINAL_ANALYSIS.md).
+
+### CSAM Implementation Forensics & Root-Cause Audit
+A systematic equation-to-code audit explained why CSAM failed to learn despite the successful DR2 control:
+1. **Structural Information Discard**: Literal paper equations (Eqs. 7–8) discard the document CLS embedding $h_T$, routing document signal purely through attention weights $\alpha_i$. In contrast, the original authors' reference repository concatenated $[h_T, \text{agg}] \in \mathbb{R}^{2H}$.
+2. **Attention Dilution & Gradient Starvation**: Softmax normalization over 54 labels forces mean $\alpha \approx 1/54$. Combined with $1/\sqrt{H}$ scaling, the analytical backpropagation factor to document BERT is $\approx 6.68 \times 10^{-4}$ ($1496\times$ suppression), leaving the document encoder effectively frozen at initialization.
+3. **Focal Loss Gradient Inbalance**: Under $\alpha=0.25$, positive errors receive $0.25$ weight while negative errors receive $0.75$ weight ($3\times$ downweighting). Under AAPD sparsity (95.5% zeros), negative gradient mass dominates by $64.5\times$, driving the model into a static negative-bias frequency-prior state.
+- Full investigation and hypothesis matrix in [`docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`](docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md).
+- Controlled recovery proposal and preregistration in [`docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`](docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md).
+
 ---
 
 ## Latest Experimental Evidence — RUN_0 / DR1

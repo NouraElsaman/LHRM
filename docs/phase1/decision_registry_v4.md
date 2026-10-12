@@ -432,3 +432,39 @@ Scientific Disposition: A5b (unshared classifier head) did not pass the 300-step
 Causality Limit: This descriptive diagnostic shows the trained state under 300 steps, but does not constitute an inductive proof that unshared classifiers or dot-product attention are generally incapable of learning with different initializations or longer training.
 Note on Baseline Controls: Standard BERT Multi-Label Control (DR2 / Variant B, Dev P@1 = 0.8820) remains strictly distinct from CSAM/LHRM reproduction claims.
 Detailed Postmortem: `docs/experiments/DR4_FINAL_POSTMORTEM.md`.
+
+---
+
+## DR4b -- Frozen Label-SA Counterfactual Evaluation
+
+Class: SCIENTIFIC RESEARCH AUDIT & COUNTERFACTUAL EXPERIMENT
+Date: 2026-10-12
+Status: COMPLETED (INTEGRATED)
+Decision: Formally record the outcome of inference-only counterfactual evaluation `DR4_FROZEN_SA_CF_20261012_A` on trained step-300 checkpoints (`L2_STEP300_MODEL_ONLY.pt` and `L2_A5B_STEP300_MODEL_ONLY.pt`).
+Rationale: Test whether static label self-attention offsets $W_i \cdot (A h_L)_i$ are the sole barrier preventing trained models from expressing document-dependent ranking on the 200 Dev diagnostic screening documents.
+Outcome:
+- Exact SHA-256 evidence integrity verified (`DR4_FROZEN_SA_CF_EVIDENCE.zip`, SHA-256: `a32eab0a33a39bb079259e175b61dd442d33386cb8412f59f69cda93bd92a610`).
+- Original vs counterfactual Top-1 hits: 63/200 -> 63/200 for L2 (+0 improvement); 63/200 -> 63/200 for L2_A5B (+0 improvement).
+- V4 cross-document logit standard deviation strictly invariant under constant shift ($\Delta \sigma \le 4.28 \times 10^{-8}$): L2 remains 21/54; L2_A5B remains 3/54.
+- Accuracy transitions: $\text{True}\to\text{True}=63$, $\text{False}\to\text{False}=137$, $\text{False}\to\text{True}=0$, $\text{True}\to\text{False}=0$ for both models.
+- Rank flips in L2_A5B (199/200) occurred strictly between identical ground-truth target columns (`cmp-lg` -> `cond-mat.dis-nn`).
+- Mean probability margin between counterfactual Top-1 and Top-2 is $3.42 \times 10^{-6}$ in L2, demonstrating near-perfect numerical ties.
+Scientific Disposition: Refutes the hypothesis that static label-SA offsets are the exclusive cause of ranking failure. Document-dependent terms themselves fail to generate useful discrimination.
+Detailed Analysis: `docs/experiments/DR4_FROZEN_SA_CF_FINAL_ANALYSIS.md`.
+
+---
+
+## DR4c -- CSAM Signal Forensic Audit & Recovery Preregistration
+
+Class: SCIENTIFIC RESEARCH AUDIT & ARCHITECTURAL RECOVERY DECISION
+Date: 2026-10-12
+Status: COMPLETED (RESEARCH DECISION)
+Decision: Conduct exhaustive equation-to-code audit across CSAM representation, attention normalization, gradient flow, and loss formulation; rank competing hypotheses H1–H7; preregister a decisive Category 2 frozen-backbone probe (`DR4_FROZEN_BACKBONE_PROBE_20261012_A`) and Category 3 recovery screening (Variant R + BCE).
+Rationale: Resolves the paradox of why standard BERT (DR2) achieves P@1 = 88.20% while CSAM fails to beat the 31.50% frequency prior.
+Audited Root-Cause Mechanisms:
+1. *Structural Information Bottleneck*: Literal paper equations (Eqs. 7–8) discard the document vector $h_T$, routing document signal purely through attention weights $\alpha_i$. In contrast, the original authors' implementation (`Model/lhrm.py:189-192`) explicitly concatenated $[h_T, \text{agg}] \in \mathbb{R}^{2H}$ into `nn.Linear(2H, k)`.
+2. *Attention Dilution & Gradient Starvation*: Softmax normalization over 54 labels forces mean $\alpha \approx 1/54$. Combined with $1/\sqrt{H}$ scaling, the analytical backpropagation factor to document BERT is $\frac{\alpha_i}{\sqrt{H}} \approx 6.68 \times 10^{-4}$ ($1496\times$ suppression), leaving the document encoder effectively frozen at initialization.
+3. *Loss Gradient Imbalance*: Focal loss ($\alpha=0.25, \gamma=2$) downweights positive gradients $3\times$ relative to negatives ($0.25$ vs $0.75$). In AAPD (95.5% negative labels), negative gradient mass dominates by $64.5\times$ ($38.70$ vs $0.60$), causing rapid collapse to a negative frequency-prior state.
+Action: Preregistered frozen-backbone diagnostic probe to verify whether the trained document BERT encoder is identical to initialization before any new GPU training.
+Detailed Audit: `docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`.
+Detailed Recovery Decision: `docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`.

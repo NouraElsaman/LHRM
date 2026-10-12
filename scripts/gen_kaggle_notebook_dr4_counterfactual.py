@@ -487,15 +487,23 @@ for k_name, p in paths.items():
 
     # ── Cell 4: Interactive File Links ────────────────────────────────────────
     cells.append(cell("""\
-# Cell 4: Download links for exported deliverables
-from IPython.display import FileLink, display
+# Cell 4: Download links for exported deliverables (Kaggle-safe relative links)
+import os
 from pathlib import Path
+from IPython.display import FileLink, display
 
 out_dir = Path("/kaggle/working/diagnostics/DR4_FROZEN_SA_CF")
-if out_dir.is_dir():
-    print("Downloadable Counterfactual Evidence Deliverables:")
-    for f in sorted(out_dir.iterdir()):
-        display(FileLink(str(f)))
+assert out_dir.is_dir(), "No output directory: run Cell 3 successfully first."
+required = ("DR4_FROZEN_SA_CF_EVIDENCE.zip", "DR4_FROZEN_SA_CF_SHA256SUMS.txt")
+for filename in required:
+    assert (out_dir / filename).is_file(), f"Required artifact missing: {filename}"
+
+os.chdir(out_dir)
+print("Counterfactual deliverables ready for download:")
+for path in sorted(out_dir.iterdir()):
+    if path.is_file():
+        print(f"{path.name}  ({path.stat().st_size:,} bytes)")
+        display(FileLink(path.name))
 """))
 
     nb = {
