@@ -87,10 +87,17 @@ Executed controlled 300-step replay on Kaggle GPU, recovered complete step-300 t
   - Trained L2 gradient ratios are not identical across losses (document-to-classifier ratio was $2.695 \times 10^{-5}$ under BCE vs $3.769 \times 10^{-4}$ under Focal); BCE as a training objective remains untested in CSAM.
   - Comprehensive empirical analysis documented in [`docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`](docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md).
 
-### Prepared DR4 Controlled Screening: Variant `L2_A5B` (Unshared Per-Label Classifier)
-- **Status**: Prepared as an alternative architectural interpretation; GPU training NOT launched.
-- **Design**: Strict single-component ablation retaining label-label self-attention, replacing shared classifier $W \in \mathbb{R}^{1 \times H}$ with unshared $W \in \mathbb{R}^{k \times H}$ and shared scalar bias $b \in \mathbb{R}$.
-- **Causality Limit**: If `L2_A5B` fails, this does not prove that document-label dot-product attention is the sole remaining failure source.
+### Completed DR4 Screening & Trained Logit Decomposition (`RUN_0_L2_A5B_20261012_A`)
+Executed 300 optimizer steps comparing `L2` (shared classifier) versus `L2_A5B` (unshared per-label classifier $W \in \mathbb{R}^{k \times H}$, Decision A5b), followed by post-training logit decomposition (`DR4_POSTTRAIN_DECOMPOSITION_20261012`) on real trained checkpoints.
+- **Outcome**: Both variants failed viability screening (V4: 21/54 for L2, 3/54 for L2_A5B; V5: 63/200 Top-1 hits, matching the frequency prior).
+- **Predictions**: L2 predicted `cond-mat.dis-nn` for 200/200 documents. L2_A5B predicted `cmp-lg` for 199/200 documents and `cond-mat.dis-nn` for 1/200 documents (both labels share identical target columns in AAPD).
+- **Trained Logit Decomposition**:
+  - Confirmed exact algebraic logit decomposition ($\text{logits}_{b, i} = \text{doc\_term}_{b, i} + \text{sa\_term}_i + b$) with reconstruction error $< 7.15 \times 10^{-7}$.
+  - The static document-invariant label self-attention term dominated the document-dependent term by $48.03\times$ in L2 and $51.82\times$ in L2_A5B.
+  - The 54 unshared classifier weight rows in `L2_A5B` remained highly collinear (mean off-diagonal cosine similarity $0.9985$).
+  - Full postmortem documented in [`docs/experiments/DR4_FINAL_POSTMORTEM.md`](docs/experiments/DR4_FINAL_POSTMORTEM.md).
+- **Causality Limit**: Unsharing the classifier head alone did not resolve ranking collapse under the 300-step screening protocol, but this observational finding does not establish an inductive proof regarding all training regimes or initializations.
+- **Standard Baseline Reference**: The standard BERT multi-label control baseline (DR2 / Variant B, Dev P@1 = 0.8820) remains strictly distinct from CSAM reproduction claims.
 
 ---
 

@@ -36,11 +36,20 @@
   - Trained L2 gradient ratios are not identical across losses (document-to-classifier ratio was $2.695 \times 10^{-5}$ under BCE vs $3.769 \times 10^{-4}$ under Focal); BCE as a training objective remains untested in CSAM.
   - Full analysis documented in [`docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`](experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md).
 
-## Prepared DR4 Controlled Screening: Variant `L2_A5B` (Unshared Per-Label Classifier)
-- **Status**: Prepared and preregistered; GPU training NOT launched (requires user authorization).
-- **Scientific Status**: Alternative architectural interpretation of Figure 2, not a confirmed paper-faithful implementation.
-- **Single Component Ablation**: Replaces shared classifier `nn.Linear(H, 1)` with unshared per-label parameter $W \in \mathbb{R}^{k \times H}$ and shared scalar bias $b \in \mathbb{R}$. Label-label self-attention remains fully ENABLED; learning rate remains approved AAPD baseline $2\times 10^{-5}$; steps locked to 300; seed 42.
-- **Causality Limit**: If `L2_A5B` fails, it demonstrates that unsharing the classifier head alone is insufficient to resolve ranking collapse under 300-step screening; it does not prove that document-label dot-product attention is the sole remaining failure source.
+## Completed DR4 Controlled Screening & Post-Training Decomposition (`RUN_0_L2_A5B_20261012_A`)
+- **Status**: Executed on Kaggle GPU, verified, and post-training logit decomposition diagnostic completed (`DR4_POSTTRAIN_DECOMPOSITION_20261012`).
+- **Result**: Decisively **NOT VIABLE**. Both `L2` and `L2_A5B` failed V4 and V5 (P@1 correct hits: 63/200, matching frequency prior 63/200).
+- **Key Findings**:
+  - Unsharing the classifier head parameters ($W \in \mathbb{R}^{54 \times H}$) did not alleviate ranking collapse. Instead, passing labels under V4 dropped from 21/54 in `L2` to 3/54 in `L2_A5B`.
+  - The static label self-attention term ($1.624$) dominates the document term ($0.031$) by $51.82\times$ in `L2_A5B` (vs $48.03\times$ in `L2`).
+  - Cross-attention became more diffuse under `L2_A5B` (attention entropy rose from 3.6907 to 3.9537; mean max $\alpha$ dropped from 0.0406 to 0.0278).
+  - The 54 unshared weight vectors of $W$ remained highly collinear (mean off-diagonal cosine similarity $0.9985 \pm 0.0022$).
+  - Full postmortem documented in [`docs/experiments/DR4_FINAL_POSTMORTEM.md`](experiments/DR4_FINAL_POSTMORTEM.md).
+
+## Prepared DR4 Frozen-Checkpoint Label-SA Counterfactual (`DR4_FROZEN_SA_CF_20261012_A`)
+- **Status**: Preregistered and prepared; GPU execution NOT started.
+- **Intervention**: Frozen-logit counterfactual evaluating $\text{counterfactual\_logits}[b, i] = \text{doc\_term}[b, i] + b$ against $\text{original\_logits}[b, i] = \text{doc\_term}[b, i] + \text{sa\_term}[i] + b$.
+- **Hypothesis**: Tests immediate ranking sensitivity of frozen models to static label-SA offsets without retraining. Preregistration in [`docs/experiments/DR4_FROZEN_SA_COUNTERFACTUAL_PROTOCOL.md`](experiments/DR4_FROZEN_SA_COUNTERFACTUAL_PROTOCOL.md).
 
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.

@@ -95,12 +95,10 @@ Reading: Figure 2 caption could be interpreted as W in R^{k x H} (one row per la
   Preserves shared scalar bias b in R.
 Scientific Status: Alternative architectural interpretation of Figure 2, NOT a
   confirmed paper-faithful implementation.
-Execution Status: PREPARED for DR4 controlled screening (tests and packaging);
-  NOT executed on GPU (pending authorization).
-Causality Limit: If A5b fails, this does NOT prove that document-label dot-product
-  attention is the sole remaining failure source.
-Impact: k x more parameters in the classifier head (k x H instead of 1 x H); decoupled
-  per-label gradient accumulation.
+Execution Status: EXECUTED on Kaggle GPU in DR4 (`RUN_0_L2_A5B_20261012_A`) and independently audited (`DR4_POSTTRAIN_DECOMPOSITION_20261012`).
+Outcome: NOT VIABLE. Failed V4 (3/54) and V5 (63/200 hits == frequency prior 63/200). Full postmortem in `docs/experiments/DR4_FINAL_POSTMORTEM.md`.
+Causality Limit: Demonstrates that unsharing the classifier head alone is insufficient to resolve ranking collapse under 300-step screening; it does not prove that document-label dot-product attention is the sole remaining failure source.
+Impact: k x more parameters in the classifier head (k x H instead of 1 x H); decoupled per-label gradient accumulation.
 
 ---
 
@@ -413,3 +411,24 @@ Outcome:
 - Identifies the combination of diffuse cross-attention and the shared scalar classifier ($W \in \mathbb{R}^{1 \times H}$, Decision A5) as the primary mechanism locking label rankings across documents.
 Recommended Next Action: Preregistered controlled screening of `A5b` (Unshared Classifier Head $W \in \mathbb{R}^{k \times H}$, Figure 2 Fallback Reading).
 Detailed Report: `docs/experiments/DR3_TRAINED_REPLAY_FINAL_ANALYSIS.md`.
+
+---
+
+## DR4 -- Unshared Classifier Screening (A5b) & Post-Training Logit Decomposition
+
+Class: SCIENTIFIC EXPERIMENT & POST-TRAINING DIAGNOSTIC
+Date: 2026-10-12
+Status: COMPLETED (NOT VIABLE / DIAGNOSED)
+Decision: Formally record the outcome of controlled 300-step screening experiment `RUN_0_L2_A5B_20261012_A` (L2 shared classifier vs L2_A5B unshared per-label classifier $W \in \mathbb{R}^{k \times H}$) and post-training logit decomposition diagnostic `DR4_POSTTRAIN_DECOMPOSITION_20261012`.
+Rationale: Evaluated whether unsharing the classifier weights resolves ranking collapse by decoupling label gradient accumulation, as hypothesized under the Figure 2 alternative reading (A5b).
+Outcome:
+- Both candidates failed viability screening V4 and V5. Both achieved 63/200 Top-1 hits (31.50%), exactly matching the dataset frequency prior.
+- L2 predicted `cond-mat.dis-nn` for 200/200 documents. L2_A5B predicted `cmp-lg` for 199/200 documents and `cond-mat.dis-nn` for 1/200 documents. These two labels share identical target columns in the dataset.
+- Post-training algebraic logit decomposition ($W_i \cdot h_{\text{final}, i} + b \equiv \text{doc\_term}_{b, i} + \text{sa\_term}_i + b$) verified on real trained model checkpoints (`L2_STEP300_MODEL_ONLY.pt` and `L2_A5B_STEP300_MODEL_ONLY.pt`) with reconstruction error $< 7.15 \times 10^{-7}$.
+- The static document-invariant label self-attention component dominated the document-dependent cross-attention term by $48.03\times$ in L2 (mean abs $1.6709$ vs $0.0348$) and $51.82\times$ in L2_A5B (mean abs $1.6243$ vs $0.0313$).
+- The unshared classifier weight rows in L2_A5B remained highly aligned after 300 steps (mean off-diagonal cosine similarity $0.9985$).
+- Attention entropy remained high (L2: 3.6907, L2_A5B: 3.9537), showing cross-attention became even more diffuse under L2_A5B.
+Scientific Disposition: A5b (unshared classifier head) did not pass the 300-step viability screen. Unsharing the classifier head alone was insufficient to overcome static ranking domination under the registered protocol.
+Causality Limit: This descriptive diagnostic shows the trained state under 300 steps, but does not constitute an inductive proof that unshared classifiers or dot-product attention are generally incapable of learning with different initializations or longer training.
+Note on Baseline Controls: Standard BERT Multi-Label Control (DR2 / Variant B, Dev P@1 = 0.8820) remains strictly distinct from CSAM/LHRM reproduction claims.
+Detailed Postmortem: `docs/experiments/DR4_FINAL_POSTMORTEM.md`.
