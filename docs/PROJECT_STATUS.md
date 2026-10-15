@@ -66,6 +66,20 @@
     3. *Loss Gradient Imbalance*: Focal loss with $\alpha=0.25$ downweights positives $3\times$ relative to negatives, resulting in $64.5\times$ greater negative gradient mass under AAPD sparsity ($95.5\%$ zeros), causing early collapse to a document-invariant negative frequency-prior state.
 - **Recovery Decision**: Preregistered Category 2 frozen-backbone diagnostic probe followed by Category 3 recovery screen (Variant R + BCE) documented in [`docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`](experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md).
 
+## Prepared Author-Aligned Reference Recovery (`AAPD_R_AUTHOR_BCE_RECOVERY_20261015_A`)
+- **Status**: Implemented, verified with unit tests, packaged, and prepared for Kaggle GPU execution; GPU training NOT YET EXECUTED.
+- **Intervention**: Reference implementation recovery porting the authors' actual repository architecture (`Model/lhrm.py:144-192`):
+  - Document embedding: `bert(...).pooler_output` $\in \mathbb{R}^{B \times 768}$.
+  - Label embedding: Precomputed once from token means, registered as trainable `nn.Parameter(54, 768)`.
+  - Self-attention: `nn.MultiheadAttention(768, heads=4)` with residual addition and LayerNorm.
+  - Similarity & Aggregation: Unscaled dot-product similarity $w = \text{softmax}(h_\text{doc} \cdot L^T)$, aggregation $\text{agg} = w \cdot L$.
+  - Concatenation: $[h_\text{doc}, \text{agg}] \in \mathbb{R}^{B \times 1536} \to \text{Linear}(1536, 54)$.
+  - Loss: `torch.nn.BCEWithLogitsLoss()`.
+  - Schedule: 15 epochs, batch size 8, lr 2e-5, AdamW, seed 42.
+- **Non-Leaky HRRM Pipeline**: Deterministic 4-way Dev partition (200 diagnostic, 400 selection, 200 HRRM fit, 200 HRRM held-out eval).
+- **Client Inference Interface**: Interactive inference demonstration helper `predict_abstract` with raw AAPD column mapping disclosure.
+- **Deliverables**: Code bundle `bundles/lhrm_gpu_bundle_r_author_20261015.zip` (SHA-256: `e25c583e76d44873e0bdeebcaa99973db8ac4763b79023afd2787902a8e65bbf`), notebook `notebooks/lhrm_r_author_aapd_train_evaluate_kaggle.ipynb`, and protocol [`docs/experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md`](experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md).
+
 ## Future Work
 - **HRRM Fitting**: To be executed on validated Dev predictions downstream after a final baseline architecture is cemented.
 - **Test Split Evaluation**: Completely locked. No evaluation is performed on the Test split until the final protocol is frozen.

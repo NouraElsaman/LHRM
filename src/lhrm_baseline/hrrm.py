@@ -254,3 +254,143 @@ class HRRM:
         adj_all = leaky_model.predict(X)
         
         return {"adj_scores": adj_all, "X": X, "y": y, "note": "LEAKY_DIAGNOSTIC"}
+
+
+def create_dev_partition(
+    n_docs: int = 1000,
+    seed: int = 42,
+) -> Dict[str, List[int]]:
+    """
+    Deterministically partitions 1,000 Dev documents into 4 non-overlapping subsets:
+    - diagnostic_ids: 200 docs (matching registered RUN_0 diagnostic screening set)
+    - model_selection_ids: 400 docs (used for neural best-checkpoint selection)
+    - hrrm_fit_ids: 200 docs (used exclusively for fitting HRRM Gradient Boosting regressor)
+    - hrrm_eval_ids: 200 docs (held-out comparison evaluating neural vs HRRM re-ranking)
+    """
+    import random
+    rng = random.Random(seed)
+    all_indices = list(range(n_docs))
+    
+    # Diagnostic 200 IDs matching registered RUN_0 sampling:
+    diag_ids = sorted(rng.sample(all_indices, 200))
+    remaining = [i for i in all_indices if i not in set(diag_ids)]
+    
+    # Model selection (400 docs from remaining):
+    model_sel_ids = sorted(rng.sample(remaining, 400))
+    remaining_after_sel = [i for i in remaining if i not in set(model_sel_ids)]
+    
+    # HRRM fit (200 docs):
+    hrrm_fit_ids = sorted(rng.sample(remaining_after_sel, 200))
+    
+    # HRRM held-out eval (final 200 docs):
+    hrrm_eval_ids = sorted([i for i in remaining_after_sel if i not in set(hrrm_fit_ids)])
+    
+    assert len(diag_ids) == 200
+    assert len(model_sel_ids) == 400
+    assert len(hrrm_fit_ids) == 200
+    assert len(hrrm_eval_ids) == 200
+    all_combined = set(diag_ids) | set(model_sel_ids) | set(hrrm_fit_ids) | set(hrrm_eval_ids)
+    assert len(all_combined) == n_docs, "Partitions must be non-overlapping and exhaustive"
+    
+    return {
+        "diagnostic_ids": diag_ids,
+        "model_selection_ids": model_sel_ids,
+        "hrrm_fit_ids": hrrm_fit_ids,
+        "hrrm_eval_ids": hrrm_eval_ids,
+    }
+
+
+def build_hrrm_features_from_arrays(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    label_order: List[str],
+    seed: int = 42,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Build (score, rank) feature matrix X and targets y directly from ndarrays:
+    y_true: [N, k] binary
+    y_score: [N, k] float probabilities
+    """
+    N, k = y_score.shape
+    rows_X = []
+    rows_y = []
+    for doc_idx in range(N):
+        scores = y_score[doc_idx]
+        rank_order = _seeded_rank_order(scores, seed=seed ^ doc_idx)
+        ranks = np.empty_like(rank_order)
+        ranks[rank_order] = np.arange(1, k + 1)
+        for label_idx in range(k):
+            rows_X.append([float(scores[label_idx]), int(ranks[label_idx])])
+            rows_y.append(float(y_true[doc_idx, label_idx]))
+    return np.array(rows_X, dtype=float), np.array(rows_y, dtype=float)
+
+
+def predict_hrrm_scores_matrix(
+    hrrm_model: HRRM,
+    y_score: np.ndarray,
+    seed: int = 42,
+) -> np.ndarray:
+    """
+    Apply fitted HRRM model to a matrix of neural scores [N, k], returning adjusted scores [N, k].
+    """
+    N, k = y_score.shape
+    adj_matrix = np.zeros_like(y_score)
+    for doc_idx in range(N):
+        scores = y_score[doc_idx]
+        rank_order = _seeded_rank_order(scores, seed=seed ^ doc_idx)
+        ranks = np.empty_like(rank_order)
+        ranks[rank_order] = np.arange(1, k + 1)
+        X_doc = np.column_stack([scores, ranks.astype(float)])  # [k, 2]
+        adj_matrix[doc_idx] = hrrm_model.predict(X_doc)
+    return adj_matrix
+
+
+def evaluate_hrrm_heldout(
+    y_true_full: np.ndarray,
+    y_pred_full: np.ndarray,
+    label_order: List[str],
+    partition: Optional[Dict[str, List[int]]] = None,
+    seed: int = 42,
+) -> Dict[str, Any]:
+    """
+    Executes the strictly non-leaky HRRM pipeline on partitioned Dev data:
+    1. Fits HRRM exclusively on partition['hrrm_fit_ids'] (200 docs).
+    2. Predicts and evaluates both Neural baseline and HRRM re-ranked outputs
+       on partition['hrrm_eval_ids'] (200 docs).
+    3. Computes metrics (P@1, P@3, P@5, nDCG@3, nDCG@5) and delta on identical held-out rows.
+    """
+    from .metrics import compute_all_metrics
+    
+    if partition is None:
+        partition = create_dev_partition(n_docs=len(y_true_full), seed=seed)
+        
+    fit_ids = partition["hrrm_fit_ids"]
+    eval_ids = partition["hrrm_eval_ids"]
+    
+    # 1. Fit on fit_ids
+    X_fit, y_fit = build_hrrm_features_from_arrays(
+        y_true_full[fit_ids], y_pred_full[fit_ids], label_order, seed=seed
+    )
+    hrrm = HRRM(seed=seed)
+    hrrm.fit(X_fit, y_fit)
+    
+    # 2. Evaluate on held-out eval_ids
+    y_true_eval = y_true_full[eval_ids]
+    y_score_eval_neural = y_pred_full[eval_ids]
+    y_score_eval_hrrm = predict_hrrm_scores_matrix(hrrm, y_score_eval_neural, seed=seed)
+    
+    neural_metrics = compute_all_metrics(y_true_eval, y_score_eval_neural, k_values=[1, 3, 5], threshold=0.5, include_f1=True)
+    hrrm_metrics = compute_all_metrics(y_true_eval, y_score_eval_hrrm, k_values=[1, 3, 5], threshold=0.5, include_f1=True)
+    
+    delta = {k: round(hrrm_metrics[k] - neural_metrics[k], 6) for k in neural_metrics if k in hrrm_metrics}
+    
+    return {
+        "n_fit_docs": len(fit_ids),
+        "n_eval_docs": len(eval_ids),
+        "fit_doc_indices": fit_ids,
+        "eval_doc_indices": eval_ids,
+        "neural_metrics": neural_metrics,
+        "hrrm_metrics": hrrm_metrics,
+        "delta": delta,
+        "hrrm_model": hrrm,
+    }

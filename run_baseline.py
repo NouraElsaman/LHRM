@@ -1054,7 +1054,20 @@ def cmd_train(args):
     label_ids, label_mask = tokenize_labels(label_texts_list, tokenizer, max_len=64, device=device)
 
     bert  = build_bert_model(bert_name, device)
-    model = LHRMModel(bert, len(label_order), variant=variant).to(device)
+    if variant == "R_AUTHOR":
+        from lhrm_baseline.model import build_author_label_embeddings
+        print("Building initial author label embeddings from BERT token means...")
+        label_emb = build_author_label_embeddings(
+            label_list=label_order,
+            tokenizer=tokenizer,
+            bert=bert,
+            defs_path=defs_path,
+            max_len=64,
+            device=device,
+        )
+        model = LHRMModel(bert, len(label_order), variant=variant, label_emb=label_emb).to(device)
+    else:
+        model = LHRMModel(bert, len(label_order), variant=variant).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
     scaler    = torch.amp.GradScaler("cuda") if use_amp else None
     criterion = get_loss(cfg.get("loss", "focal"),

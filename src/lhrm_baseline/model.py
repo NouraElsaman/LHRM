@@ -19,11 +19,13 @@ Variant ladder (A6 / A5b):
   B        = standard BERT multi-label control [CLS] -> Linear(k)
 """
 from __future__ import annotations
+import json
 import math
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from transformers import BertModel
 
@@ -254,22 +256,143 @@ class CSAM_R(nn.Module):
         return logits, {}
 
 
+class CSAM_R_AUTHOR(nn.Module):
+    """
+    Author-Code-Aligned CSAM Module (Variant R_AUTHOR).
+    
+    Directly reflects the original authors' reference implementation in Model/lhrm.py:144-192:
+    - Trainable label embeddings L in R^{num_labels x hidden}, initialized once from pre-trained
+      BERT token means and optimized via gradient descent (Model/lhrm.py:147).
+    - Label self-attention using nn.MultiheadAttention(hidden, heads=4, batch_first=True)
+      with residual connection and LayerNorm (Model/lhrm.py:150-158).
+    - Unscaled document-label similarity dot product: w = softmax(h_doc @ L^T, dim=1) (Model/lhrm.py:159).
+    - Label aggregation: agg = w @ L in R^{B x hidden} (Model/lhrm.py:160).
+    - Concatenation: combined = [h_doc, agg] in R^{B x 2*hidden} (Model/lhrm.py:190).
+    - Multi-label classifier: nn.Linear(2 * hidden, num_labels) producing logits in R^{B x num_labels} (Model/lhrm.py:182, 191).
+    """
+    def __init__(
+        self,
+        hidden: int,
+        num_labels: int,
+        label_emb: Optional[torch.Tensor] = None,
+        use_sa: bool = True,
+        heads: int = 4,
+    ):
+        super().__init__()
+        self.hidden = hidden
+        self.num_labels = num_labels
+        self.use_sa = use_sa
+        
+        if label_emb is not None:
+            assert label_emb.shape == (num_labels, hidden), (
+                f"Expected label_emb shape ({num_labels}, {hidden}), got {tuple(label_emb.shape)}"
+            )
+            self.label_emb = nn.Parameter(label_emb.clone(), requires_grad=True)
+        else:
+            # Fallback initialization (for dummy tests or when initialized later)
+            self.label_emb = nn.Parameter(
+                torch.randn(num_labels, hidden) / math.sqrt(hidden),
+                requires_grad=True,
+            )
+            
+        if use_sa:
+            self.sa = nn.MultiheadAttention(hidden, heads, batch_first=True)
+            self.ln = nn.LayerNorm(hidden)
+            
+        self.classifier = nn.Linear(2 * hidden, num_labels)
+
+    def forward(
+        self,
+        h_doc: torch.Tensor,  # [B, H] BERT pooler_output (Model/lhrm.py:185)
+        return_alpha: bool = False,
+    ) -> Tuple[torch.Tensor, dict]:
+        B, H = h_doc.shape
+        L = self.label_emb  # [k, H]
+        
+        if self.use_sa:
+            # Self-attention over label representations: L in R^{1 x k x H}
+            att, _ = self.sa(L.unsqueeze(0), L.unsqueeze(0), L.unsqueeze(0))  # [1, k, H]
+            L = self.ln(L + att.squeeze(0))  # [k, H]
+            
+        # Unscaled dot-product similarity matching Model/lhrm.py:159
+        sim = h_doc @ L.t()  # [B, k]
+        w = F.softmax(sim, dim=1)  # [B, k]
+        agg = w @ L  # [B, H]
+        
+        # Concat document representation and aggregated label representation (Model/lhrm.py:190)
+        combined = torch.cat([h_doc, agg], dim=1)  # [B, 2H]
+        logits = self.classifier(combined)  # [B, k]
+        
+        with torch.no_grad():
+            max_alpha = w.max(dim=1).values.mean().item()
+            alpha_entropy = -(w * (w + 1e-10).log()).sum(dim=1).mean().item()
+            one_hot_frac = (w.max(dim=1).values > 0.9).float().mean().item()
+            
+        diag = {
+            "alpha_max_mean": max_alpha,
+            "alpha_entropy_mean": alpha_entropy,
+            "alpha_one_hot_frac": one_hot_frac,
+            "alpha": (w.detach() if (not self.training or return_alpha) else None),
+            "S": (sim.detach() if (not self.training or return_alpha) else None),
+        }
+        return logits, diag
+
+
+@torch.no_grad()
+def build_author_label_embeddings(
+    label_list: List[str],
+    tokenizer,
+    bert: BertModel,
+    context: Optional[Dict[str, str]] = None,
+    defs_path: Optional[str] = None,
+    max_len: int = 64,
+    device: Optional[torch.device] = None,
+) -> torch.Tensor:
+    """
+    Author reference label embedding builder matching Model/lhrm.py:222-243.
+    Constructs initial label embeddings: mean over token embeddings for "label: definition".
+    Returns [k, H] tensor.
+    """
+    if device is None:
+        device = next(bert.parameters()).device
+    if context is None and defs_path is not None and os.path.isfile(defs_path):
+        with open(defs_path, "r", encoding="utf-8") as f:
+            context = json.load(f)
+            
+    bert.eval()
+    embs = []
+    for lab in label_list:
+        enriched = lab
+        if context is not None and lab in context:
+            desc = str(context[lab]).strip()
+            if desc:
+                enriched = f"{lab}: {desc}".strip()
+        enc = tokenizer(
+            enriched,
+            return_tensors="pt",
+            max_length=max_len,
+            padding="max_length",
+            truncation=True,
+        ).to(device)
+        out = bert(**enc).last_hidden_state.mean(dim=1)  # [1, H]
+        embs.append(out.squeeze(0).cpu())
+    return torch.stack(embs, dim=0)  # [k, H]
+
+
 class LHRMModel(nn.Module):
     """
-    Paper-faithful LHRM model.
+    LHRM Model supporting Paper-faithful and Author-aligned variants.
     
-    - Shared BERT for document and label encoding (A2: shared weights)
-    - Document: CLS last_hidden_state[:,0] (A1: not pooler_output)
-    - Labels: CLS last_hidden_state[:,0] per label, computed with gradients (A3)
-    - CSAM: Eqs.4-8, variant selectable (A6)
-    
-    Args:
-        bert_model:        Loaded BertModel (shared for doc and labels)
-        label_texts:       List of k label texts Y_1..Y_k
-        tokenizer:         BertTokenizer (to encode label texts per batch)
-        num_labels:        k (number of labels)
-        variant:           'L', 'L2', 'L2_NO_SA', 'L2_A5B', 'R', or 'B'
-        max_len:           Max tokenization length for labels
+    Variants:
+    - 'L': Literal paper equations (Eqs. 4-8), shared classifier, [CLS] last_hidden_state.
+    - 'L2': Scaled similarity S / sqrt(H), shared classifier.
+    - 'L2_NO_SA': Scaled similarity, label self-attention excised.
+    - 'L2_A5B': Scaled similarity, unshared per-label classifier W in R^{k x H}.
+    - 'R': Fallback concat aggregation with dynamic label re-encoding.
+    - 'R_AUTHOR': Original author repository implementation (Model/lhrm.py:144-192),
+      featuring trainable label embeddings, pooler_output document encoding,
+      unscaled dot-product similarity, and [h_doc, agg] -> Linear(2H, k).
+    - 'B': Standard BERT multi-label control baseline ([CLS] -> Linear(k)).
     """
     
     def __init__(
@@ -278,6 +401,7 @@ class LHRMModel(nn.Module):
         num_labels: int,
         variant: str = "L",
         separate_label_encoder: Optional[BertModel] = None,
+        label_emb: Optional[torch.Tensor] = None,
     ):
         super().__init__()
         self.bert = bert_model
@@ -294,30 +418,44 @@ class LHRMModel(nn.Module):
             self.csam = CSAM_L_A5B(H, num_labels, scale_similarity=True, use_label_sa=True)
         elif variant == "R":
             self.csam = CSAM_R(H, num_labels, use_sa=True)
+        elif variant == "R_AUTHOR":
+            self.csam = CSAM_R_AUTHOR(H, num_labels, label_emb=label_emb, use_sa=True, heads=4)
         elif variant == "B":
             self.classifier = nn.Linear(H, num_labels)
         else:
-            raise ValueError(f"Unknown variant: {variant}. Choices: L, L2, L2_NO_SA, L2_A5B, R, B")
+            raise ValueError(f"Unknown variant: {variant}. Choices: L, L2, L2_NO_SA, L2_A5B, R, R_AUTHOR, B")
     
     def forward(
         self,
         doc_input_ids: torch.Tensor,       # [B, seq_len]
         doc_attention_mask: torch.Tensor,  # [B, seq_len]
-        label_input_ids: torch.Tensor,     # [k, label_seq_len]
-        label_attention_mask: torch.Tensor, # [k, label_seq_len]
+        label_input_ids: Optional[torch.Tensor] = None,     # [k, label_seq_len]
+        label_attention_mask: Optional[torch.Tensor] = None, # [k, label_seq_len]
+        return_alpha: bool = False,
     ) -> Tuple[torch.Tensor, dict]:
         """
         Forward pass.
         
-        Labels are encoded inside the forward pass with gradients (A3).
-        Efficiency: encode all k label texts once per batch (same for all docs in batch).
-        This is mathematically identical to encoding per document.
-        
-        Returns:
-            logits: [B, k]
-            diagnostics: dict with CSAM saturation info
+        For R_AUTHOR:
+            Document representation uses bert(...).pooler_output (Model/lhrm.py:185).
+            Label representations are held as trainable parameters inside self.csam.
+            label_input_ids and label_attention_mask are ignored.
+            
+        For B:
+            Document representation uses get_cls_embedding(doc_output).
+            Direct linear classification.
+            
+        For L, L2, L2_NO_SA, L2_A5B, R:
+            Shared BERT dynamically encodes document and label texts with gradients.
+            CSAM projects representations into logits.
         """
-        # Eq.1: Document encoding — [CLS] last hidden state
+        if self.variant == "R_AUTHOR":
+            # Model/lhrm.py:185 uses bert(...).pooler_output
+            doc_output = self.bert(doc_input_ids, attention_mask=doc_attention_mask)
+            h_doc = doc_output.pooler_output  # [B, H]
+            return self.csam(h_doc, return_alpha=return_alpha)
+            
+        # Document encoding — [CLS] last hidden state
         doc_output = self.bert(doc_input_ids, attention_mask=doc_attention_mask)
         h_T = get_cls_embedding(doc_output)  # [B, H]
         
@@ -325,15 +463,23 @@ class LHRMModel(nn.Module):
             logits = self.classifier(h_T)
             return logits, {}
         
-        # Eq.2: Label encoding — [CLS] last hidden state, with gradients (A3)
+        # Label encoding — [CLS] last hidden state, with gradients (A3)
+        assert label_input_ids is not None and label_attention_mask is not None, (
+            f"Variant {self.variant} requires label_input_ids and label_attention_mask"
+        )
         label_encoder = self.separate_label_encoder if self.separate_label_encoder else self.bert
         label_output = label_encoder(label_input_ids, attention_mask=label_attention_mask)
         h_L = get_cls_embedding(label_output)  # [k, H]
         
-        # CSAM (Eqs.3-8)
-        logits, diag = self.csam(h_T, h_L)  # [B, k]
-        
+        # CSAM
+        if hasattr(self.csam, "forward") and "return_alpha" in self.csam.forward.__code__.co_varnames:
+            logits, diag = self.csam(h_T, h_L, return_alpha=return_alpha)
+        else:
+            logits, diag = self.csam(h_T, h_L)
+            
         return logits, diag
+    
+
 
 
 def build_bert_model(bert_name: str, device: torch.device) -> BertModel:

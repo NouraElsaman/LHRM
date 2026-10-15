@@ -26,6 +26,7 @@ The source tree supports several architecture options:
 - **Variant B**: A standard independent BERT control (`[CLS] -> Linear(54)`) utilizing BCEWithLogitsLoss.
 - **Variant L2_NO_SA**: A prepared isolated mathematical ablation removing label-label self-attention.
 - **Variant R**: A repository-style fallback CSAM using concat aggregation.
+- **Variant R_AUTHOR**: An isolated, author-code-aligned recovery implementation faithful to the authors' reference repository (`Model/lhrm.py`). Combines BERT document `pooler_output`, precomputed trainable label embeddings (`nn.Parameter` initialized from BERT token means over label texts), 4-head `MultiheadAttention` with residual connection and LayerNorm, unscaled document-label similarity attention, aggregation, document-attention concatenation $[h_{\text{doc}}, \text{agg}] \in \mathbb{R}^{B \times 1536}$, and an unshared linear classifier producing 54 logits trained with `BCEWithLogitsLoss`.
 
 ## Dataset and Environment
 - **Dataset**: AAPD (53,840 train, 1,000 dev, 54 labels) based on the original Zenodo source. 
@@ -54,6 +55,11 @@ python run_baseline.py run0 --config configs/final/aapd_baseline.yaml --run_id R
 Full Baseline Training (Requires GPU):
 ```bash
 python run_baseline.py train --config configs/final/aapd_baseline_dr2.yaml --run_id RUN_DR2_B --variant B
+```
+
+Author-Aligned Recovery Training (R_AUTHOR + BCE, 15 Epochs, Requires GPU):
+```bash
+python run_baseline.py train --config configs/final/aapd_r_author_bce.yaml --run_id AAPD_R_AUTHOR_BCE_RECOVERY_20261015_A --variant R_AUTHOR
 ```
 
 ## Experimental Chronology
@@ -113,6 +119,15 @@ A systematic equation-to-code audit explained why CSAM failed to learn despite t
 3. **Focal Loss Gradient Inbalance**: Under $\alpha=0.25$, positive errors receive $0.25$ weight while negative errors receive $0.75$ weight ($3\times$ downweighting). Under AAPD sparsity (95.5% zeros), negative gradient mass dominates by $64.5\times$, driving the model into a static negative-bias frequency-prior state.
 - Full investigation and hypothesis matrix in [`docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`](docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md).
 - Controlled recovery proposal and preregistration in [`docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`](docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md).
+
+### Author-Aligned Recovery Implementation (R_AUTHOR + BCE Delivery)
+In response to client delivery priorities, implemented the author-aligned reference pipeline (`Variant R_AUTHOR`) matching the code path in the authors' repository (`Model/lhrm.py`):
+- **Architecture**: Document representations from BERT `pooler_output` ($[B, 768]$); trainable label embeddings initialized from BERT token means ($[54, 768]$); 4-head `MultiheadAttention` with residual and LayerNorm; unscaled dot-product similarity cross-attention; aggregation ($[B, 768]$); concatenation $[h_{\text{doc}}, \text{agg}] \in \mathbb{R}^{B \times 1536}$; linear projection `nn.Linear(1536, 54)`.
+- **Loss**: `BCEWithLogitsLoss` (replaces Focal Loss).
+- **Evaluation**: Non-leaky 4-way Dev partition (200 diagnostic, 400 selection, 200 HRRM fit, 200 HRRM held-out eval).
+- **Client Inference Interface**: Abstract-level Top-5 predictions with raw sigmoid scores, optional HRRM re-ranking, and scientific label mapping disclaimer.
+- **Delivery Bundle & Notebook**: Generated self-contained portable Kaggle workflow (`notebooks/lhrm_r_author_aapd_train_evaluate_kaggle.ipynb`) and verified bundle `bundles/lhrm_gpu_bundle_r_author_20261015.zip`.
+- **Protocol**: Full protocol and architectural parity audit in [`docs/experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md`](docs/experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md).
 
 ---
 

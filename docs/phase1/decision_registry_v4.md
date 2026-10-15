@@ -468,3 +468,22 @@ Audited Root-Cause Mechanisms:
 Action: Preregistered frozen-backbone diagnostic probe to verify whether the trained document BERT encoder is identical to initialization before any new GPU training.
 Detailed Audit: `docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`.
 Detailed Recovery Decision: `docs/experiments/CSAM_RECOVERY_DECISION_AND_NEXT_EXPERIMENT.md`.
+
+---
+
+## DR4d -- Author-Aligned Reference Recovery Implementation (Variant R_AUTHOR)
+
+Class: SCIENTIFIC RECOVERY & CLIENT DELIVERY DECISION
+Date: 2026-10-15
+Status: IMPLEMENTED & PREPARED (READY FOR GPU LAUNCH)
+Decision: Implement and package an isolated author-code-aligned recovery architecture (`R_AUTHOR`) based directly on the original authors' repository (`Model/lhrm.py:144-192`), using standard `torch.nn.BCEWithLogitsLoss()`, trained for 15 epochs with a non-leaky HRRM evaluation pipeline.
+Rationale: Resolves the compounding failure mechanisms identified in DR4 (information discard in Eq. 8 and focal loss gradient starvation) by adopting the reference implementation's direct concatenation $[h_\text{doc}, \text{agg}] \in \mathbb{R}^{2H}$, trainable label embedding parameters, unscaled dot-product similarity, and unweighted BCE objective.
+Key Architectural Parity Decisions:
+- Document encoding: `bert(...).pooler_output` $\in \mathbb{R}^{B \times 768}$ (`Model/lhrm.py:185`).
+- Label embeddings: Precomputed once from BERT token means and registered as trainable `nn.Parameter` (`Model/lhrm.py:147, 222-243`).
+- Similarity & Aggregation: Unscaled dot-product attention $w = \text{softmax}(h_\text{doc} \cdot L^T)$ and $\text{agg} = w \cdot L$ (`Model/lhrm.py:159-160`).
+- Classification: `nn.Linear(2H, 54)` on $[h_\text{doc}, \text{agg}]$ (`Model/lhrm.py:182, 190-191`).
+- Loss: `torch.nn.BCEWithLogitsLoss()` (`Model/lhrm.py:339`).
+- HRRM Pipeline: Deterministic 4-way Dev partition (200 diagnostic, 400 selection, 200 HRRM fit, 200 HRRM held-out eval) eliminating test-set leakage.
+Deliverables: `bundles/lhrm_gpu_bundle_r_author_20261015.zip` (SHA-256: `e25c583e...`), `notebooks/lhrm_r_author_aapd_train_evaluate_kaggle.ipynb`, and [`docs/experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md`](../experiments/R_AUTHOR_CLIENT_DELIVERY_PROTOCOL.md).
+Scientific Scope: Reference implementation recovery, NOT a strict mathematical reproduction of published paper Eqs. 3–8. Performance claims deferred until authenticated GPU execution.
