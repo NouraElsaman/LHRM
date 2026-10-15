@@ -94,3 +94,30 @@ The workflow provides an interactive inference function:
 - Outputs Top-5 predicted labels with sigmoid probability scores.
 - Outputs optional re-ranked Top-5 predictions if HRRM is attached.
 - Displays a clean client-ready Markdown summary table with clear disclosure of unverified category mappings.
+
+---
+
+## 7. Critical Kaggle Notebook Release Patches (2026-10-15)
+
+Following independent audit of the release deliverables, 8 critical patches were applied to canonical notebook `notebooks/lhrm_r_author_aapd_train_evaluate_kaggle.ipynb` and its generator `scripts/gen_kaggle_notebook_r_author.py`:
+
+1. **Patch 1 — Bundle Manifest Dual-Path Verification**:
+   - Resolved manifest hash distinction: sidecar manifest (`7a5f5fa0...`) contains `bundle_sha256` for local verification, while internal manifest (`8a6ebf14...`) defines constituent file hashes.
+   - Dual-path support: verifies raw ZIP SHA (`e25c583e...`) when attached directly, or verifies internal manifest SHA and all 16 constituent files against expected hashes when auto-extracted by Kaggle.
+2. **Patch 2 — Authentic AAPD CSV Loading**:
+   - Replaced incorrect `'text'` column assumption with authentic `'abstract'` document text column.
+   - Verified 55 total CSV columns (`abstract` + 54 binary target columns), 53,840 train rows, 1,000 dev rows, and exact label-order hash `a3d662f3920259a94ed61d83f98f21cabe7f908d98a5662ccd9adc2413cc000b`.
+3. **Patch 3 — Preflight Variable Initialization & RUN_ID**:
+   - Defined `RUN_ID`, `SEED`, `MODEL_VARIANT`, `LOSS_TYPE`, `LR`, `BATCH_SIZE`, etc. canonically in Cell 1 preflight.
+4. **Patch 4 — Reproducible Seed Initialization**:
+   - Set Python `random`, NumPy, PyTorch CPU, and PyTorch CUDA seeds to 42 before label embedding initialization and training.
+5. **Patch 5 — Real Epoch-Boundary Checkpoint Resume**:
+   - Implemented full state restoration (model, optimizer, AMP scaler, epoch, global step, history, best selection score, RNG states).
+   - Atomic saving (`latest.pt.tmp` -> `latest.pt`) preventing checkpoint corruption on session interruption.
+6. **Patch 6 — Leakage-Safe Model Selection**:
+   - Restricted checkpoint selection to the 400 fixed `model_selection_ids`. Full Dev metrics are logged descriptively but do not drive checkpoint selection.
+7. **Patch 7 — Checkpoint Consistency Across HRRM & Client Demo**:
+   - Selected neural checkpoint (`best_dev_model_only.pt`) is loaded explicitly and used consistently for recomputing Dev predictions, fitting HRRM (on 200 fit docs), evaluating HRRM (on 200 held-out docs), and running client abstract inference.
+8. **Patch 8 — Honest Complete Evidence Export**:
+   - Produces all documented deliverables: `RUN_MANIFEST.json`, `CONFIG_RESOLVED.json`, `dev_partition.json`, `epoch_metrics.csv`, `train_history.json`, `training_summary.json`, `per_label_metrics.csv`, `step300_info.json`, `hrrm_heldout_comparison.json`, `inference_demo.json`, `neural_dev_predictions.json`, `SHA256SUMS.txt`, and `EVIDENCE.zip`.
+   - Exposes valid `FileLink` download links for all generated outputs.
