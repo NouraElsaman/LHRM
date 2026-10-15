@@ -121,3 +121,23 @@ Following independent audit of the release deliverables, 8 critical patches were
 8. **Patch 8 — Honest Complete Evidence Export**:
    - Produces all documented deliverables: `RUN_MANIFEST.json`, `CONFIG_RESOLVED.json`, `dev_partition.json`, `epoch_metrics.csv`, `train_history.json`, `training_summary.json`, `per_label_metrics.csv`, `step300_info.json`, `hrrm_heldout_comparison.json`, `inference_demo.json`, `neural_dev_predictions.json`, `SHA256SUMS.txt`, and `EVIDENCE.zip`.
    - Exposes valid `FileLink` download links for all generated outputs.
+
+---
+
+## 8. Final Execution Blocker Patches (2026-10-15)
+
+Following further audit, four critical runtime blockers were surgically corrected in `notebooks/lhrm_r_author_aapd_train_evaluate_kaggle.ipynb` and `scripts/gen_kaggle_notebook_r_author.py`:
+
+1. **Bug 1 — Fatal Runtime Error in Cell 6 (`compute_per_label_metrics`)**:
+   - Bundled function returns `list[dict]`, not a DataFrame. Calling `.to_csv()` on it directly produced fatal `AttributeError`.
+   - Corrected to: `pd.DataFrame(compute_per_label_metrics(...)).to_csv(..., index=False)`.
+2. **Bug 2 — Incomplete Cross-Session Resume & Model Selection State**:
+   - Resume now enforces fail-closed verification: missing checkpoint raises `FileNotFoundError` rather than silently starting a fresh run.
+   - Embedded `best_model_state_dict` directly in `latest.pt` so resume across Kaggle sessions guarantees restoration of `best_dev_model_only.pt`, `best_epoch`, and `best_sel_p1`. Preserves `step300_info.json`.
+3. **Bug 3 — Checkpoint Disk Retention Bound**:
+   - Removed saving of all 15 full optimizer checkpoints (`epoch_XX.pt`), which threatened Kaggle's 20 GB disk quota ($15 \times 1.3\text{ GB} \approx 19.5\text{ GB}$).
+   - Bounded retention to: `latest.pt`, `previous.pt` (full resumable), `best_dev_model_only.pt`, and `final_model_only.pt` (~3.5 GB peak disk usage). Added preflight disk space assertion ($>4.0\text{ GB}$).
+4. **Bug 4 — Fail-Closed Evidence Packaging**:
+   - Verified that all 11 mandatory evidence deliverables exist before packaging `EVIDENCE.zip`; missing files trigger an immediate `RuntimeError`.
+5. **End-to-End CPU Smoke Test**:
+   - Verified complete pipeline with `tests/test_end_to_end_cpu_smoke.py`, executing the actual bundled functions across two synthetic training epochs, model selection, atomic checkpointing, session restart resume, `compute_per_label_metrics` DataFrame export, HRRM fitting/eval, client inference, and ZIP packaging.

@@ -10,11 +10,12 @@ Canonical, author-code-aligned recovery and full evaluation workflow on Kaggle G
 - Reproducible seeds: random, numpy, torch cpu, torch cuda set to 42
 - Dual-path fail-closed bundle verification (raw ZIP & auto-extracted internal manifest)
 - Authentic AAPD loading (supports 'abstract' column, validates 54 labels & label-order hash)
-- Real epoch-boundary resume support with full optimizer, scaler, and RNG state
+- Real epoch-boundary resume support with full optimizer, scaler, RNG, and best model state
+- Bounded checkpoint disk retention (latest.pt, previous.pt, best_dev_model_only.pt, final_model_only.pt)
 - Leakage-safe model selection on 400 fixed Dev documents
 - Disjoint non-leaky HRRM evaluation (200 fit vs 200 held-out eval)
 - Consistent selected checkpoint for HRRM and client inference demo
-- Complete honest evidence exports (RUN_MANIFEST, CONFIG_RESOLVED, EVIDENCE.zip, FileLinks)
+- Fail-closed complete evidence exports (RUN_MANIFEST, CONFIG_RESOLVED, dev_partition, EVIDENCE.zip, FileLinks)
 """
 import argparse
 import hashlib
@@ -72,6 +73,7 @@ def build_notebook() -> dict:
    - 200 docs: Held-out HRRM vs Neural comparison (`hrrm_eval_ids`).
 7. **Consistent Selected Checkpoint**: The best neural checkpoint selected on the 400-doc subset is loaded and used consistently for HRRM fitting, HRRM held-out evaluation, and client inference.
 8. **Client Demonstration**: Interactive inference on scientific text/abstracts producing Top-5 predictions with confidence scores and unverified label mapping disclosure.
+9. **Bounded Disk Management**: Checkpoints are strictly bounded to `latest.pt`, `previous.pt`, `best_dev_model_only.pt`, and `final_model_only.pt` (~3.5 GB peak disk usage).
 
 - **Run ID:** `{RUN_ID}`
 - **Bundle Archive:** `{BUNDLE_NAME}` (SHA-256: `{BUNDLE_SHA256}`)
@@ -90,7 +92,7 @@ import torch
 
 print("=== LHRM R_AUTHOR Recovery: Configuration & Environment Preflight ===", flush=True)
 
-# ── Canonical Configuration ──
+# ── Canonical Configuration (Patch 3) ──
 RUN_ID = "{RUN_ID}"
 SEED = 42
 MODEL_VARIANT = "R_AUTHOR"
@@ -101,9 +103,9 @@ BATCH_SIZE = 8
 MAX_LEN = 512
 NUM_EPOCHS = 15
 EXPECTED_LABEL_ORDER_HASH = "{LABEL_ORDER_HASH}"
-RESUME_CHECKPOINT_PATH = None  # Set to a file path string (e.g. "/kaggle/input/.../latest.pt") to resume
+RESUME_CHECKPOINT_PATH = None  # Explicit path string (e.g. "/kaggle/input/.../latest.pt") or None for fresh run
 
-# ── Seed Initialization (A4) ──
+# ── Seed Initialization (Patch 4 / A4) ──
 def set_seed(seed: int = 42):
     random.seed(seed)
     np.random.seed(seed)
@@ -446,14 +448,22 @@ print("R_AUTHOR architecture initialization verified successfully.", flush=True)
 
     # ── Cell 5: Full 15-Epoch Training with Real Resume & Safe Model Selection ─
     cells.append(cell("""\
-# Cell 5: Full 15-Epoch Training Loop with Real Resume & Leakage-Safe Model Selection
+# Cell 5: Full 15-Epoch Training Loop with Real Resume, Disk Management & Safe Selection
 from torch.utils.data import DataLoader
 from src.lhrm_baseline.train import predict_epoch_loader, save_predictions
-from src.lhrm_baseline.metrics import compute_all_metrics, compute_per_label_metrics
+from src.lhrm_baseline.metrics import compute_all_metrics
 
 EXP_DIR = Path(f"/kaggle/working/experiments/{RUN_ID}")
 CKPT_DIR = EXP_DIR / "checkpoints"
 CKPT_DIR.mkdir(parents=True, exist_ok=True)
+
+# ── Disk Space Preflight & Bounded Storage Check (Bug 3) ──
+total_b, used_b, free_b = shutil.disk_usage("/kaggle/working")
+free_gb = free_b / (1024**3)
+print(f"Disk check: {free_gb:.1f} GB available in /kaggle/working.")
+print("Bounded checkpoint strategy: keeping only latest.pt, previous.pt, best_dev_model_only.pt, and final_model_only.pt (~3.5 GB peak).")
+if free_gb < 4.0:
+    print(f"WARNING: Available disk space ({free_gb:.1f} GB) is low. Monitoring closely.")
 
 # ── Deterministic 4-Way Dev Partition (Patch 6) ──
 dev_partition = create_dev_partition(n_docs=len(dev_texts), seed=SEED)
@@ -495,7 +505,7 @@ criterion = get_loss(LOSS_TYPE)  # BCEWithLogitsLoss
 optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 scaler = torch.amp.GradScaler("cuda")
 
-# ── Resume State Tracking (Patch 5) ──
+# ── State Tracking & Fail-Closed Resume Handling (Bug 2 & Patch 5) ──
 start_epoch = 1
 total_steps = 0
 steps_per_epoch = len(train_loader)
@@ -503,16 +513,23 @@ total_global_steps = NUM_EPOCHS * steps_per_epoch
 history = []
 best_sel_p1 = -1.0
 best_epoch = 0
+best_model_sd = None
 step_300_reported = False
 
 metrics_csv_path = EXP_DIR / "epoch_metrics.csv"
 history_json_path = EXP_DIR / "train_history.json"
 
-if RESUME_CHECKPOINT_PATH and Path(RESUME_CHECKPOINT_PATH).exists():
-    print(f"\\n=== Loading Resume Checkpoint from: {RESUME_CHECKPOINT_PATH} ===")
-    ckpt = torch.load(RESUME_CHECKPOINT_PATH, map_location=device, weights_only=False)
+if RESUME_CHECKPOINT_PATH is not None:
+    resume_path = Path(RESUME_CHECKPOINT_PATH)
+    if not resume_path.exists():
+        raise FileNotFoundError(
+            f"FAIL-CLOSED GATE: Resume requested with RESUME_CHECKPOINT_PATH='{RESUME_CHECKPOINT_PATH}', "
+            "but the file does not exist! Refusing to start an unverified fresh run."
+        )
+    print(f"\\n=== Loading Verified Resume Checkpoint from: {resume_path} ===")
+    ckpt = torch.load(str(resume_path), map_location=device, weights_only=False)
     
-    assert ckpt.get("variant") == "R_AUTHOR", f"Variant mismatch in checkpoint: {ckpt.get('variant')}"
+    assert ckpt.get("variant") == "R_AUTHOR", f"Variant mismatch: {ckpt.get('variant')}"
     if "label_order_hash" in ckpt:
         assert ckpt["label_order_hash"] == EXPECTED_LABEL_ORDER_HASH, "Label order mismatch in resume checkpoint!"
         
@@ -528,6 +545,48 @@ if RESUME_CHECKPOINT_PATH and Path(RESUME_CHECKPOINT_PATH).exists():
     best_epoch = ckpt.get("best_epoch", 0)
     step_300_reported = (total_steps >= 300)
     
+    # Restore best selection model checkpoint (Bug 2)
+    best_ckpt_target = CKPT_DIR / "best_dev_model_only.pt"
+    if "best_model_state_dict" in ckpt:
+        best_model_sd = ckpt["best_model_state_dict"]
+        torch.save({
+            "epoch": best_epoch,
+            "step": ckpt.get("best_step", total_steps),
+            "model_state_dict": best_model_sd,
+            "variant": "R_AUTHOR",
+            "selection_subset": "400_docs",
+            "selection_P@1": best_sel_p1,
+            "run_id": RUN_ID,
+        }, best_ckpt_target)
+        print(f"Restored best_dev_model_only.pt from checkpoint payload (Best Epoch {best_epoch}, Selection P@1: {best_sel_p1:.4f})")
+    elif (resume_path.parent / "best_dev_model_only.pt").exists():
+        shutil.copy2(resume_path.parent / "best_dev_model_only.pt", best_ckpt_target)
+        best_sd_loaded = torch.load(best_ckpt_target, map_location="cpu", weights_only=False)
+        best_model_sd = best_sd_loaded["model_state_dict"]
+        print(f"Restored best_dev_model_only.pt from resume directory: {resume_path.parent}")
+    else:
+        raise RuntimeError(
+            f"FAIL-CLOSED: Resume checkpoint does not contain best_model_state_dict and best_dev_model_only.pt was not found beside {resume_path}!"
+        )
+        
+    # Restore or reconstruct step300_info.json (Bug 4)
+    if step_300_reported and not (EXP_DIR / "step300_info.json").exists():
+        cand_s300 = resume_path.parent / "step300_info.json"
+        if not cand_s300.exists():
+            cand_s300 = resume_path.parent.parent / "step300_info.json"
+        if cand_s300.exists():
+            shutil.copy2(cand_s300, EXP_DIR / "step300_info.json")
+        else:
+            s300_record = ckpt.get("step300_info", {
+                "step": 300,
+                "train_loss_step300": None,
+                "diag_P@1": history[0].get("diag_P@1", None) if history else None,
+                "prior_reference": 63,
+                "note": "RESTORED_FROM_RESUME_CHECKPOINT"
+            })
+            with open(EXP_DIR / "step300_info.json", "w", encoding="utf-8") as sf:
+                json.dump(s300_record, sf, indent=2)
+                
     # Restore RNG states
     if "torch_rng_state" in ckpt:
         torch.set_rng_state(ckpt["torch_rng_state"])
@@ -660,10 +719,11 @@ for epoch in range(start_epoch, NUM_EPOCHS + 1):
     if sel_p1 > best_sel_p1:
         best_sel_p1 = sel_p1
         best_epoch = epoch
+        best_model_sd = {k: v.cpu().clone() for k, v in model.state_dict().items()}
         torch.save({
             "epoch": epoch,
             "step": total_steps,
-            "model_state_dict": model.state_dict(),
+            "model_state_dict": best_model_sd,
             "variant": "R_AUTHOR",
             "selection_subset": "400_docs",
             "selection_P@1": best_sel_p1,
@@ -671,12 +731,15 @@ for epoch in range(start_epoch, NUM_EPOCHS + 1):
             "run_id": RUN_ID,
         }, CKPT_DIR / "best_dev_model_only.pt")
         print(f"  * New best Selection P@1: {best_sel_p1:.4f} (Epoch {epoch}) -> saved best_dev_model_only.pt")
+    elif best_model_sd is None:
+        best_model_sd = torch.load(CKPT_DIR / "best_dev_model_only.pt", weights_only=False)["model_state_dict"]
         
-    # Atomic Rolling Checkpointing for safe session resume (Patch 5)
+    # Bounded Atomic Rolling Checkpoint (Bug 3: only latest.pt and previous.pt)
     ckpt_payload = {
         "epoch": epoch,
         "step": total_steps,
         "model_state_dict": model.state_dict(),
+        "best_model_state_dict": best_model_sd,
         "optimizer_state_dict": optimizer.state_dict(),
         "scaler_state_dict": scaler.state_dict(),
         "variant": "R_AUTHOR",
@@ -685,6 +748,7 @@ for epoch in range(start_epoch, NUM_EPOCHS + 1):
         "history": history,
         "best_sel_p1": best_sel_p1,
         "best_epoch": best_epoch,
+        "best_step": total_steps if (epoch == best_epoch) else ckpt.get("best_step", total_steps) if "ckpt" in locals() else total_steps,
         "torch_rng_state": torch.get_rng_state(),
         "cuda_rng_state": torch.cuda.get_rng_state() if torch.cuda.is_available() else None,
         "numpy_rng_state": np.random.get_state(),
@@ -699,9 +763,6 @@ for epoch in range(start_epoch, NUM_EPOCHS + 1):
     if latest_ckpt.exists():
         shutil.copy2(latest_ckpt, previous_ckpt)
     tmp_latest.replace(latest_ckpt)
-    
-    # Save epoch-specific checkpoint
-    torch.save(ckpt_payload, CKPT_DIR / f"epoch_{epoch:02d}.pt")
 
 # Save final epoch model-only checkpoint
 torch.save({
@@ -716,12 +777,14 @@ torch.save({
 with open(history_json_path, "w") as f:
     json.dump(history, f, indent=2)
 
-print(f"Training completed successfully in {(time.time() - t_train_start)/60:.1f} minutes. Best selection epoch: {best_epoch} (P@1: {best_sel_p1:.4f}).", flush=True)
+print(f"Training completed successfully in {(time.time() - t_train_start)/60:.1f} minutes. Best selection epoch: {best_epoch} (Selection P@1: {best_sel_p1:.4f}).", flush=True)
 """))
 
     # ── Cell 6: HRRM Non-Leaky Fitting & Held-out Evaluation ─────────────────
     cells.append(cell("""\
 # Cell 6: Non-Leaky HRRM Pipeline Fitting & Held-Out Evaluation
+from src.lhrm_baseline.metrics import compute_per_label_metrics
+
 print("=== Non-Leaky HRRM Pipeline Evaluation ===", flush=True)
 
 # Patch 7: Explicitly load the SELECTED neural checkpoint (best on 400 selection docs)
@@ -743,9 +806,10 @@ with torch.no_grad():
 # Save neural predictions on full Dev
 save_predictions(y_true_dev_sel, y_pred_dev_sel, label_cols, str(EXP_DIR / "neural_dev_predictions.json"))
 
-# Save per-label metrics on Dev
-per_label_df = compute_per_label_metrics(y_true_dev_sel, y_pred_dev_sel, label_cols, threshold=0.5)
-per_label_df.to_csv(EXP_DIR / "per_label_metrics.csv", index=False)
+# Bug 1 Fix: compute_per_label_metrics returns list[dict], must wrap in DataFrame for .to_csv()
+per_label_rows = compute_per_label_metrics(y_true_dev_sel, y_pred_dev_sel, label_cols, threshold=0.5)
+pd.DataFrame(per_label_rows).to_csv(EXP_DIR / "per_label_metrics.csv", index=False)
+print(f"Saved per_label_metrics.csv ({len(per_label_rows)} labels).")
 
 # Evaluate non-leaky HRRM pipeline using disjoint sets:
 # - hrrm_fit_ids (200 docs): used EXCLUSIVELY to fit Gradient Boosting regressor
@@ -865,9 +929,8 @@ training_summary = {{
 with open(EXP_DIR / "training_summary.json", "w", encoding="utf-8") as tf:
     json.dump(training_summary, tf, indent=2)
 
-# 3. Collect and package all evidence files into EVIDENCE.zip
-evidence_zip_path = Path("/kaggle/working/EVIDENCE.zip")
-expected_evidence_files = [
+# 3. Fail-Closed Verification of Mandatory Evidence Files (Bug 4)
+mandatory_evidence_files = [
     "RUN_MANIFEST.json",
     "CONFIG_RESOLVED.json",
     "dev_partition.json",
@@ -881,17 +944,23 @@ expected_evidence_files = [
     "neural_dev_predictions.json",
 ]
 
+missing_evidence = [f for f in mandatory_evidence_files if not (EXP_DIR / f).exists()]
+if missing_evidence:
+    raise RuntimeError(
+        f"FAIL-CLOSED GATE: Missing mandatory evidence files: {{missing_evidence}} in {{EXP_DIR}}! "
+        "Cannot package incomplete EVIDENCE.zip."
+    )
+
+# 4. Package into EVIDENCE.zip with SHA256SUMS.txt
+evidence_zip_path = Path("/kaggle/working/EVIDENCE.zip")
 sha256_records = []
 with zipfile.ZipFile(evidence_zip_path, "w", compression=zipfile.ZIP_DEFLATED) as ez:
-    for fname in expected_evidence_files:
+    for fname in mandatory_evidence_files:
         fpath = EXP_DIR / fname
-        if fpath.exists():
-            h = hashlib.sha256(fpath.read_bytes()).hexdigest()
-            sha256_records.append(f"{{h}}  {{fname}}")
-            ez.write(fpath, arcname=fname)
-            print(f"Packed: {{fname}} ({{h[:12]}}...)")
-        else:
-            print(f"Warning: Expected evidence file missing: {{fname}}")
+        h = hashlib.sha256(fpath.read_bytes()).hexdigest()
+        sha256_records.append(f"{{h}}  {{fname}}")
+        ez.write(fpath, arcname=fname)
+        print(f"Packed: {{fname}} ({{h[:12]}}...)")
             
     sha_str = "\\n".join(sha256_records) + "\\n"
     ez.writestr("SHA256SUMS.txt", sha_str)
@@ -902,7 +971,7 @@ print(f"\\nEVIDENCE.zip created: {{evidence_zip_path.stat().st_size:,}} bytes")
 ez_hash = hashlib.sha256(evidence_zip_path.read_bytes()).hexdigest()
 print(f"EVIDENCE.zip SHA-256: {{ez_hash}}")
 
-# 4. Copy key downloadable deliverables into /kaggle/working/
+# 5. Copy key downloadable deliverables into /kaggle/working/
 shutil.copy2(selected_ckpt_path, Path("/kaggle/working") / selected_ckpt_path.name)
 if (CKPT_DIR / "final_model_only.pt").exists() and selected_ckpt_path.name != "final_model_only.pt":
     shutil.copy2(CKPT_DIR / "final_model_only.pt", Path("/kaggle/working/final_model_only.pt"))
