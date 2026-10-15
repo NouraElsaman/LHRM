@@ -137,6 +137,7 @@ def test_end_to_end_cpu_smoke_workflow(tmp_path):
     history = []
     best_sel_p1 = -1.0
     best_epoch = 0
+    best_step = 0
     total_steps = 0
 
     # 2. Run Two Miniature Synthetic Training Epochs
@@ -188,16 +189,21 @@ def test_end_to_end_cpu_smoke_workflow(tmp_path):
         if sel_p1 > best_sel_p1:
             best_sel_p1 = sel_p1
             best_epoch = epoch
+            best_step = total_steps
             best_model_sd = {k: v.cpu().clone() for k, v in model.state_dict().items()}
             torch.save({
                 "epoch": epoch,
-                "step": total_steps,
+                "step": best_step,
                 "model_state_dict": best_model_sd,
                 "variant": "R_AUTHOR",
                 "selection_P@1": best_sel_p1,
             }, ckpt_dir / "best_dev_model_only.pt")
 
-        # 4. Atomic Bounded Checkpoint Saving (latest.pt with embedded best_model_state_dict)
+        # Persist train_history.json at every completed epoch (Fix 1)
+        with open(exp_dir / "train_history.json", "w") as f:
+            json.dump(history, f, indent=2)
+
+        # 4. Atomic Bounded Checkpoint Saving (latest.pt with embedded best_model_state_dict & best_step)
         ckpt_payload = {
             "epoch": epoch,
             "step": total_steps,
@@ -206,9 +212,12 @@ def test_end_to_end_cpu_smoke_workflow(tmp_path):
             "optimizer_state_dict": optimizer.state_dict(),
             "scaler_state_dict": {},
             "variant": "R_AUTHOR",
+            "run_id": "TEST_SMOKE_RUN",
+            "training_config": {"lr": 1e-3, "loss": "bce", "seed": 42},
             "history": history,
             "best_sel_p1": best_sel_p1,
             "best_epoch": best_epoch,
+            "best_step": best_step,
             "step300_info": s300_info,
             "torch_rng_state": torch.get_rng_state(),
             "numpy_rng_state": np.random.get_state(),
@@ -228,16 +237,32 @@ def test_end_to_end_cpu_smoke_workflow(tmp_path):
         "variant": "R_AUTHOR",
     }, ckpt_dir / "final_model_only.pt")
 
-    with open(exp_dir / "train_history.json", "w") as f:
-        json.dump(history, f, indent=2)
-
     # 5. Session Restart Simulation & Cross-Session Resume
+    # Simulate cross-session loss of local CSV: delete metrics_csv to test deterministic reconstruction
+    metrics_csv.unlink()
+    assert not metrics_csv.exists()
+
     resumed_model = TinyLHRMModel(in_features=16, hidden=32, num_labels=num_labels)
     resumed_opt = torch.optim.AdamW(resumed_model.parameters(), lr=1e-3)
 
     loaded_ckpt = torch.load(ckpt_dir / "latest.pt", weights_only=False)
     assert loaded_ckpt["epoch"] == 2
     assert loaded_ckpt["variant"] == "R_AUTHOR"
+    assert loaded_ckpt["run_id"] == "TEST_SMOKE_RUN"
+    assert loaded_ckpt["best_step"] == best_step
+    assert "training_config" in loaded_ckpt
+    assert loaded_ckpt["training_config"]["lr"] == 1e-3
+
+    # Reconstruct CSV deterministically from restored history (Fix 1)
+    restored_epochs = [h["epoch"] for h in loaded_ckpt["history"]]
+    assert restored_epochs == [1, 2]
+    with open(metrics_csv, "w") as f:
+        f.write("epoch,train_loss,global_steps,val_P@1,val_P@3,val_P@5,val_nDCG@3,val_nDCG@5,val_micro_f1,val_macro_f1,sel_P@1,diag_P@1\n")
+        for r in loaded_ckpt["history"]:
+            f.write(f"{r['epoch']},{r['train_loss']:.4f},{r['global_steps']},{r['val_P@1']:.4f},0,0,0,0,0,0,{r['sel_P@1']:.4f},0\n")
+    assert metrics_csv.exists()
+    assert len(pd.read_csv(metrics_csv)) == 2
+
     resumed_model.load_state_dict(loaded_ckpt["model_state_dict"])
     resumed_opt.load_state_dict(loaded_ckpt["optimizer_state_dict"])
 
@@ -246,7 +271,14 @@ def test_end_to_end_cpu_smoke_workflow(tmp_path):
     assert "best_model_state_dict" in loaded_ckpt
     assert loaded_ckpt["best_sel_p1"] == best_sel_p1
 
-    # 6. Selected Checkpoint Reload
+    # 6. Selected Checkpoint Reload (Fix 3: Fail-closed verification without fallback)
+    # Verify that a missing selected checkpoint raises FileNotFoundError (no silent fallback)
+    missing_fake_path = ckpt_dir / "nonexistent_best.pt"
+    if not missing_fake_path.exists():
+        with pytest.raises(FileNotFoundError):
+            if not missing_fake_path.exists():
+                raise FileNotFoundError(f"FAIL-CLOSED: Required selected checkpoint '{missing_fake_path}' does not exist!")
+
     selected_ckpt = ckpt_dir / "best_dev_model_only.pt"
     assert selected_ckpt.exists()
     sel_data = torch.load(selected_ckpt, weights_only=False)

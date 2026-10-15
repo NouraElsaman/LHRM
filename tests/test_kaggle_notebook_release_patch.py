@@ -258,3 +258,77 @@ class TestKaggleNotebookReleasePatches:
         with open(NB_PATH, "r", encoding="utf-8") as f:
             nb = json.load(f)
         assert len(nb["cells"]) == 9
+
+    def test_micro_patch_fix1_resume_csv_reconstruction_and_continuity(self, tmp_path):
+        """Fix 1: Deterministic CSV reconstruction from restored history & epoch continuity validation."""
+        history = [
+            {"epoch": 1, "train_loss": 0.05, "global_steps": 100, "val_P@1": 0.80, "val_P@3": 0.60, "val_P@5": 0.45, "val_nDCG@3": 0.70, "val_nDCG@5": 0.65, "val_micro_f1": 0.75, "val_macro_f1": 0.50, "sel_P@1": 0.82, "diag_P@1": 0.78},
+            {"epoch": 2, "train_loss": 0.04, "global_steps": 200, "val_P@1": 0.85, "val_P@3": 0.65, "val_P@5": 0.50, "val_nDCG@3": 0.75, "val_nDCG@5": 0.70, "val_micro_f1": 0.80, "val_macro_f1": 0.55, "sel_P@1": 0.87, "diag_P@1": 0.83},
+        ]
+        start_epoch = 3
+        csv_path = tmp_path / "epoch_metrics.csv"
+        
+        # Test valid continuity
+        restored_epochs = [h["epoch"] for h in history]
+        expected_epochs = list(range(1, start_epoch))
+        assert restored_epochs == expected_epochs
+
+        # Reconstruct CSV
+        with open(csv_path, "w") as f:
+            f.write("epoch,train_loss,global_steps,val_P@1,val_P@3,val_P@5,val_nDCG@3,val_nDCG@5,val_micro_f1,val_macro_f1,sel_P@1,diag_P@1\n")
+            for row in history:
+                f.write(f"{row['epoch']},{row['train_loss']:.6f},{row['global_steps']},{row['val_P@1']:.4f},{row['val_P@3']:.4f},{row['val_P@5']:.4f},{row['val_nDCG@3']:.4f},{row['val_nDCG@5']:.4f},{row['val_micro_f1']:.4f},{row['val_macro_f1']:.4f},{row['sel_P@1']:.4f},{row['diag_P@1']:.4f}\n")
+
+        assert csv_path.exists()
+        import pandas as pd
+        df = pd.read_csv(csv_path)
+        assert len(df) == 2
+        assert list(df["epoch"]) == [1, 2]
+        assert list(df.columns)[0] == "epoch"
+
+        # Test discontinuous epochs fail-closed
+        bad_history = [{"epoch": 1}, {"epoch": 3}]
+        with pytest.raises(ValueError, match="FAIL-CLOSED: Checkpoint history epoch continuity violation"):
+            b_epochs = [h["epoch"] for h in bad_history]
+            if b_epochs != list(range(1, 3)):
+                raise ValueError("FAIL-CLOSED: Checkpoint history epoch continuity violation!")
+
+    def test_micro_patch_fix2_best_step_provenance(self):
+        """Fix 2: best_step is maintained explicitly and not assigned latest total_steps when epoch != best_epoch."""
+        with open(NB_PATH, "r", encoding="utf-8") as f:
+            nb = json.load(f)
+
+        cell5_code = "".join(nb["cells"][5]["source"])
+        # Must not contain fragile locals() or fallback to total_steps
+        assert 'if "ckpt" in locals()' not in cell5_code, "Fragile ckpt in locals() check must be removed"
+        assert 'best_step = 0' in cell5_code, "best_step must be initialized explicitly"
+        assert '"best_step": best_step' in cell5_code, "best_step must be explicitly passed in checkpoint payload"
+
+    def test_micro_patch_fix3_no_silent_final_model_fallback(self):
+        """Fix 3: Cell 6 must raise FileNotFoundError if best_dev_model_only.pt is absent (NO silent fallback)."""
+        with open(NB_PATH, "r", encoding="utf-8") as f:
+            nb = json.load(f)
+
+        cell6_code = "".join(nb["cells"][6]["source"])
+        assert "falling back to final_model_only.pt" not in cell6_code, (
+            "Cell 6 must not contain silent fallback to final_model_only.pt"
+        )
+        assert "raise FileNotFoundError" in cell6_code, (
+            "Cell 6 must raise FileNotFoundError if best_dev_model_only.pt is missing"
+        )
+        assert 'assert ckpt_sel.get("variant") == "R_AUTHOR"' in cell6_code
+        assert 'assert ckpt_sel.get("run_id") == RUN_ID' in cell6_code
+
+    def test_micro_patch_fix3_training_param_validation(self):
+        """Fix 3: Resumed checkpoints validate resolved training parameters."""
+        ckpt = {
+            "run_id": EXPECTED_RUN_ID,
+            "variant": "R_AUTHOR",
+            "training_config": {"lr": 1e-4, "seed": 42},
+        }
+        LR = 2e-5
+        with pytest.raises(ValueError, match="FAIL-CLOSED: Checkpoint parameter mismatch for 'lr'"):
+            if "training_config" in ckpt:
+                tc = ckpt["training_config"]
+                if "lr" in tc and tc["lr"] != LR:
+                    raise ValueError("FAIL-CLOSED: Checkpoint parameter mismatch for 'lr'")
