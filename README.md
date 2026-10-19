@@ -1,5 +1,21 @@
 # Label-Aware Hierarchical Ranking Model (LHRM)
 
+> [!IMPORTANT]
+> **LHRM R_AUTHOR V1.0 RESEARCH & CLIENT INFERENCE RELEASE (2026-10-15)**  
+> This repository contains the audited, reproducible **V1.0 release** of the Label-Aware Hierarchical Ranking Model under the author-aligned architecture (**Variant R_AUTHOR**). All training (15 epochs, 100,950 optimizer steps), validation selection (Epoch 6, Step 40,380), independent frozen Test evaluation (1,000 documents, Neural-Only), and verified client inference workflows (Kaggle and Google Colab) are fully integrated and documented.
+>
+> **Key Scientific Results on AAPD**:
+> - **Frozen Independent Test P@1**: **84.90%** (0.8490)
+> - **Frozen Independent Test Micro-F1**: **72.78%** (0.727787, TP=1671, FP=500, FN=750)
+> - **Frozen Independent Test Macro-F1**: **55.53%** (0.555253)
+> - **Dev Model Selection P@1**: **89.50%** (0.8950 on 400-doc selection split; Full Dev P@1 = 0.8760)
+> - **Selected Checkpoint**: `best_dev_model_only.pt` (Epoch 6 / Step 40,380 | SHA-256: `988bb64fca2b8ea21030585de7268a1cfb1fc8676b91b4d6e6f38c4f22c95643`)
+> - **HRRM Held-Out Finding**: GBDT re-ranking exhibited a slight negative delta on held-out Dev ($\Delta P@1 = -0.005$, $\Delta 	ext{Micro-F1} = -0.0009$). Preserving fail-closed scientific integrity, HRRM was **not evaluated or deployed on the Test set**.
+>
+> Detailed results, full 54-label breakdown, and audit documentation: [`docs/results/R_AUTHOR_AAPD_V1_RESULTS.md`](docs/results/R_AUTHOR_AAPD_V1_RESULTS.md)  
+> Machine-readable data: [`docs/results/test_summary_metrics.json`](docs/results/test_summary_metrics.json) | [`docs/results/test_per_label_metrics_54.csv`](docs/results/test_per_label_metrics_54.csv) | [`docs/results/epoch_metrics.csv`](docs/results/epoch_metrics.csv) | [`docs/results/hrrm_heldout_comparison.json`](docs/results/hrrm_heldout_comparison.json)  
+> Open research backlog: [`docs/experiments/RESEARCH_BACKLOG.md`](docs/experiments/RESEARCH_BACKLOG.md)
+
 ## Research Objective
 Multi-label text classification requires predicting multiple labels for a document. Existing approaches often treat labels independently. The LHRM architecture aims to map document text embeddings and label description embeddings into the same representation space using a Contextual Similarity Attention Module (CSAM), establishing dependencies before final ranking.
 
@@ -28,6 +44,43 @@ The source tree supports several architecture options:
 - **Variant R**: A repository-style fallback CSAM using concat aggregation.
 - **Variant R_AUTHOR**: An isolated, author-code-aligned recovery implementation faithful to the authors' reference repository (`Model/lhrm.py`). Combines BERT document `pooler_output`, precomputed trainable label embeddings (`nn.Parameter` initialized from BERT token means over label texts), 4-head `MultiheadAttention` with residual connection and LayerNorm, unscaled document-label similarity attention, aggregation, document-attention concatenation $[h_{\text{doc}}, \text{agg}] \in \mathbb{R}^{B \times 1536}$, and an unshared linear classifier producing 54 logits trained with `BCEWithLogitsLoss`.
 
+
+---
+
+## Client Inference Workflows (Kaggle & Google Colab)
+
+The V1.0 release includes two tested, isolated, inference-only client workflows. Neither client notebook performs training, and neither reads AAPD Test set data.
+
+### 1. Kaggle Client Inference
+- **Notebook**: [`notebooks/LHRM_R_AUTHOR_EPOCH6_CLIENT_INFERENCE_KAGGLE.ipynb`](notebooks/LHRM_R_AUTHOR_EPOCH6_CLIENT_INFERENCE_KAGGLE.ipynb)
+- **Runtime Environment**: Kaggle GPU/CPU with access to the staged code bundle and model checkpoint.
+- **Workflow**:
+  1. Loads `best_dev_model_only.pt` (Epoch 6).
+  2. Verifies checkpoint hash and 54-label schema.
+  3. Accepts arbitrary client paper abstracts and predicts Top-5 labels with raw sigmoid confidence scores.
+
+### 2. Google Colab Client Inference
+- **Notebook**: [`notebooks/LHRM_R_AUTHOR_EPOCH6_CLIENT_INFERENCE_COLAB_SMOKE_TEXT_LOCKED_v1_1.ipynb`](notebooks/LHRM_R_AUTHOR_EPOCH6_CLIENT_INFERENCE_COLAB_SMOKE_TEXT_LOCKED_v1_1.ipynb)
+- **Support Package**: `LHRM_R_AUTHOR_COLAB_CLIENT_SUPPORT_20261015.zip` (SHA-256: `e6f9dec292e49e8eec48c3c47f56d138897953e081b06507f8fa99a615214031`)
+- **Required Checkpoint**: `best_dev_model_only.pt` (SHA-256: `988bb64fca2b8ea21030585de7268a1cfb1fc8676b91b4d6e6f38c4f22c95643`)
+- **Setup Instructions**:
+  1. Mount Google Drive in Colab:
+     ```python
+     from google.colab import drive
+     drive.mount('/content/drive')
+     ```
+  2. Place `best_dev_model_only.pt` and `LHRM_R_AUTHOR_COLAB_CLIENT_SUPPORT_20261015.zip` into `My Drive/LHRM/`.
+  3. Run the notebook cells sequentially. The notebook unpacks the support bundle and verifies checkpoint SHA-256 integrity.
+  4. **Smoke-Test Verification**: Automatically runs 3 locked reference input abstracts with SHA-256 input checks, strictly matching the runtime-verified outputs:
+     - Sample 1 (`66650e1988e2...`): Top-1 prediction **`cond-mat.stat-mech`** (reported max diff: `0.0000000`)
+     - Sample 2 (`8c28e37b6a81...`): Top-1 prediction **`cs.lg`** (reported max diff: `0.0000000`)
+     - Sample 3 (`9b148c070423...`): Top-1 prediction **`cond-mat.stat-mech`** (reported max diff: `0.0000000`)
+  5. The interactive inference cell allows entering custom paper titles and abstracts.
+
+### 3. How to Acquire Checkpoint and Support Bundles
+Due to GitHub binary size limits, large trained model checkpoints (`best_dev_model_only.pt`, ~438 MB) and binary client packages are preserved in the local authorized artifact archive (`D:\LHRM_KAGGLE_ARTIFACTS\AAPD_R_AUTHOR_BCE_RECOVERY_20261015_A`). To obtain the private checkpoint or support zip for external deployment, contact the project maintainers. Checksum verification is enforced automatically upon loading.
+
+---
 ## Dataset and Environment
 - **Dataset**: AAPD (53,840 train, 1,000 dev, 54 labels) based on the original Zenodo source. 
 - **Environment**: Python 3.12+, PyTorch 2.x, Transformers. *Note: You must independently procure the AAPD dataset; it is not bundled.*
@@ -72,7 +125,13 @@ An independent non-CSAM standard BERT Multi-Label Baseline was trained for 15 ep
 - Reached P@1 of 0.8820 on Dev at Epoch 5.
 - Validates the data split and establishes a ceiling reference for CSAM components.
 
-## Current Scientific Limitations
+## Current Scientific Limitations & Release Caveats
+1. **Not a Literal Paper-Exact Reproduction**: This V1.0 release implements the author repository architecture (`Variant R_AUTHOR`), which combines `pooler_output` concatenation ($[h_{\text{doc}}, \text{agg}] \in \mathbb{R}^{B \times 1536}$) and BCE loss. As documented in our forensic audit ([`docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md`](docs/experiments/CSAM_DOCUMENT_SIGNAL_ROOT_CAUSE_AUDIT.md)), the literal text equations of the paper (Eqs. 4?8 with Focal Loss) suffer from document attention dilution and ranking collapse.
+2. **Baseline Comparison**: R_AUTHOR achieves strong empirical performance ($P@1 = 84.90\%$, Micro-$F_1 = 72.78\%$), but this project does not claim to have outperformed a compute-matched BERT+BCE control under identical hyperparameter conditions.
+3. **Label Semantics**: The 54 AAPD labels are ArXiv subject code identifiers; raw category tags have not been mapped to human-edited taxonomic definitions.
+4. **Score Calibration**: Model probabilities are raw sigmoid activations and are uncalibrated; the default threshold $t = 0.5$ was not tuned on the test split.
+5. **Single Seed**: Results reflect a single random seed (seed 42).
+6. **Negative HRRM Result**: HRRM/GBDT re-ranking produced a slight performance degradation on held-out Dev and was excluded from the Test set.
 The paper-derived CSAM architecture (L/L2) has demonstrated a structural bottleneck where it learns a static, document-independent ranking. This indicates that explicitly encoding label descriptions into the same embedding space as document texts without further non-linear projections fails to distinguish document semantics on AAPD.
 
 ### Completed Controlled Ablation: L2 vs L2_NO_SA (DR3)

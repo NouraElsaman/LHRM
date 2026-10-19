@@ -544,7 +544,7 @@ if RESUME_CHECKPOINT_PATH is not None:
             "but the file does not exist! Refusing to start an unverified fresh run."
         )
     print(f"\\n=== Loading Verified Resume Checkpoint from: {resume_path} ===")
-    ckpt = torch.load(str(resume_path), map_location=device, weights_only=False)
+    ckpt = torch.load(str(resume_path), map_location="cpu", weights_only=False)  # CPU RNG state must remain on CPU
     
     # Strict validation of checkpoint identity & configuration (Fix 3)
     assert ckpt.get("run_id") == RUN_ID, f"Run ID mismatch: expected '{RUN_ID}', got '{ckpt.get('run_id')}'"
@@ -653,9 +653,9 @@ if RESUME_CHECKPOINT_PATH is not None:
                 
     # Restore RNG states
     if "torch_rng_state" in ckpt:
-        torch.set_rng_state(ckpt["torch_rng_state"])
+        torch.set_rng_state(ckpt["torch_rng_state"].cpu())
     if "cuda_rng_state" in ckpt and ckpt["cuda_rng_state"] is not None and torch.cuda.is_available():
-        torch.cuda.set_rng_state(ckpt["cuda_rng_state"])
+        torch.cuda.set_rng_state(ckpt["cuda_rng_state"].cpu())
     if "numpy_rng_state" in ckpt:
         np.random.set_state(ckpt["numpy_rng_state"])
     if "python_rng_state" in ckpt:

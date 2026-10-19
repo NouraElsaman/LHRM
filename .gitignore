@@ -32,3 +32,13 @@ scratch/
 .ipynb_checkpoints/
 
 !experiments/RUN_0_P1F_EXT1/RUN_0_P1F_EXT1_EVIDENCE_20261009_222831.zip
+
+# Local Private Handoffs and Documentation
+docs/handoffs/
+
+# Binary Reports & Heavy Documents
+*.xlsx
+*.pdf
+
+# Local archives and runs
+runs/
